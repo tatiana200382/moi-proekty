@@ -96,3 +96,7 @@ open -a Safari "https://yandex.ru/maps/org/silver_song_flowers/138890152139/"
 
 Подключена 2026-11-04 и работает только в Claude, в DeepSeek Harness её нет. Перед работой с Figma прочитай `skills/figma.md`, разрешения смотри в `polnomochiya.md`, раздел 9.
 Лимит: 20 вызовов чтения в месяц, каждый записывай в `results/figma-limit.md`. Создавать и менять что-либо — только после «да» на конкретное действие.
+
+## GitHub
+
+Проект ведётся в git. После каждой задачи — коммит; `git push`, когда подключён удалённый репозиторий GitHub. Не коммить куки, токены и `.browser-profile/`. Полные правила — в `../AGENTS.md`, раздел «GitHub»; адрес и доступ — в `../github.md`.
