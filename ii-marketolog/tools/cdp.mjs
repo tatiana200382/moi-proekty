@@ -9,7 +9,7 @@
 
 const args = process.argv.slice(2);
 const cmd = args[0] || "targets";
-const PORT = process.env.CDP_PORT || 9222;
+const PORT = process.env.CDP_PORT || 9224;
 
 async function targets() {
   const res = await fetch(`http://localhost:${PORT}/json/list`);
