@@ -66,3 +66,12 @@
 ## Завершение задачи
 
 В ответе пользователю: что сделано, где лежит результат (ссылка на файл), что можно улучшить или уточнить. Не пересказывай весь документ — достаточно пары строк.
+
+## Браузер
+
+Все запросы к сайтам, кабинеты и чужие сервисы — только через **Chrome под управлением**.
+
+- Порт: **9224**. Профиль: `/Users/tatiana/Desktop/Обучение ИИ/proekty/Мои проекты/.chrome-profile`.
+- Запуск: `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome --remote-debugging-port=9224 --user-data-dir="/Users/tatiana/Desktop/Обучение ИИ/proekty/Мои проекты/.chrome-profile"`
+- Safari не подходит: у него нет отладки. Opera не использовать.
+- Скрипт управления: `/Users/tatiana/Desktop/Обучение ИИ/proekty/Мои проекты/ii-marketolog/tools/cdp.mjs` (порт по умолчанию — 9224).
