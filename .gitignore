@@ -4,3 +4,6 @@ Google Диск.app/
 *.aiff
 ii-marketolog/results/foto-buketov/
 *.docx
+~$*
+cookies.env
+.env

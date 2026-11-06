@@ -1,6 +1,6 @@
 # Сводка по папке «Мои проекты»
 
-**Дата:** 6 ноября 2026 · **Файлов в корне:** 20 + папки `дз 1`, `ii-marketolog`, `agent-marketolog`
+**Дата:** 6 ноября 2026 · **Файлов в корне:** 23 + папки `дз 1`, `ii-marketolog`, `agent-marketolog`
 
 ## Что лежит в папке
 
@@ -22,6 +22,8 @@
 | [klavisha-fn.png](klavisha-fn.png) | Схема нижнего ряда клавиш MacBook — где клавиша fn |
 | [summary.md](summary.md) | Эта сводка |
 | [otchet-svyazka-obsidian-ii.md](otchet-svyazka-obsidian-ii.md), [.docx](otchet-svyazka-obsidian-ii.docx) | Отчёт по уроку 1: как Obsidian связан с DeepSeek и Алисой — этапы, схема, ограничения |
+| [obsidian-arhitektura-i-graf.md](obsidian-arhitektura-i-graf.md), [.docx](obsidian-arhitektura-i-graf.docx) | Архитектура нашего хранилища, граф из 14 узлов и 13 связей, статусы заметок, правила работы |
+| [graf-svyazey-ai-memory-lab.png](graf-svyazey-ai-memory-lab.png) | Граф связей AI-Memory-Lab, построен по wiki-ссылкам |
 
 ## Содержание документов
 
