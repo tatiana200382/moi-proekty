@@ -105,9 +105,11 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
       await send("Input.insertText", { text: args[1] });
       console.log("введено", String(args[1]).length, "символов");
     } else if (cmd === "key") {
+      const map = { Enter: 13, Tab: 9, ArrowDown: 40, ArrowUp: 38, Escape: 27, Space: 32 };
       const key = args[1] || "Enter";
-      await send("Input.dispatchKeyEvent", { type: "keyDown", key, code: key, windowsVirtualKeyCode: 13 });
-      await send("Input.dispatchKeyEvent", { type: "keyUp", key, code: key, windowsVirtualKeyCode: 13 });
+      const vk = map[key] || 13;
+      await send("Input.dispatchKeyEvent", { type: "keyDown", key, windowsVirtualKeyCode: vk, nativeVirtualKeyCode: vk });
+      await send("Input.dispatchKeyEvent", { type: "keyUp", key, windowsVirtualKeyCode: vk, nativeVirtualKeyCode: vk });
       console.log("нажато", key);
     } else if (cmd === "upload") {
       const files = args.slice(1, -1).filter((a) => a.endsWith(".jpg") || a.endsWith(".png"));
