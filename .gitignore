@@ -8,3 +8,9 @@ ii-marketolog/results/foto-buketov/
 cookies.env
 .env
 .chrome-profile/
+
+# Заявки: персональные данные клиентов, в GitHub не попадают
+agent-marketolog/leads/*.json
+agent-marketolog/leads/outbox/
+agent-marketolog/leads/.collect-state.json
+agent-marketolog/bot/chat_id

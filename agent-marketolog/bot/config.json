@@ -1,0 +1,25 @@
+{
+  "yandex": {
+    "enabled": true,
+    "url": "https://yandex.ru/business/crm/company/138890152139/requests/list",
+    "wait_for": ".requests-table",
+    "link": "https://yandex.ru/business/crm/company/138890152139/requests/list",
+    "phone": "8 905 218-88-57"
+  },
+  "avito": {
+    "enabled": false,
+    "url": "https://www.avito.ru/profile/messenger",
+    "wait_for": "[data-marker=\"channels/channelLink\"]",
+    "allow_item_titles": [],
+    "note": "Включать, когда на Авито появятся объявления магазина. Сейчас активна только вакансия «Продавец цветов в ночь», её чаты — не заявки."
+  },
+  "vk": {
+    "enabled": false,
+    "url": "https://vk.ru/im?sel=-188108705",
+    "wait_for": "[data-testid=\"vkme_convo_list_item\"]",
+    "note": "В сообществе выключены сообщения: ВК показывает «разрешите сообщения». Пока владелец не включит их, заявок нет."
+  },
+  "max": {
+    "token_file": "~/.config/max-bot/token"
+  }
+}
