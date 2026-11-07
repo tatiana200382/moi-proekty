@@ -151,6 +151,13 @@ def _chat_from_update(update):
 
 def discover_chat():
     """Ищет chat_id в событиях бота и сохраняет его. Нужно одно сообщение боту в чате."""
+    for path in (CHAT_FILE, LOCAL_CHAT_FILE):
+        if os.path.exists(path):
+            with open(path, encoding="utf-8") as f:
+                value = f.read().strip()
+            if value:
+                print(f"чат уже настроен: {value} ({path})")
+                return value
     data = updates(timeout=3)
     found = []
     for update in data.get("updates", []):
@@ -162,7 +169,8 @@ def discover_chat():
             "в событиях нет группового чата. Добавьте бота в чат «Заявки», "
             "напишите в нём любое сообщение и повторите"
         )
-    cid = found[-1]
+    groups = [value for value in found if value.startswith("-")]
+    cid = groups[-1] if groups else found[-1]
     saved = None
     for path in (CHAT_FILE, LOCAL_CHAT_FILE):
         try:
