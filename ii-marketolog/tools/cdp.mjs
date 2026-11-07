@@ -93,6 +93,9 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
         userGesture: true,
       });
       console.log(typeof r2.result?.value === "string" ? r2.result.value : JSON.stringify(r2.result, null, 2));
+    } else if (cmd === "movexy") {
+      await send("Input.dispatchMouseEvent", { type: "mouseMoved", x: Number(args[1]), y: Number(args[2]) });
+      console.log("курсор", args[1], args[2]);
     } else if (cmd === "clickxy") {
       const x = Number(args[1]), y = Number(args[2]);
       await send("Input.dispatchMouseEvent", { type: "mousePressed", x, y, button: "left", clickCount: 1 });
