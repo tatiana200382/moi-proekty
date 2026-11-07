@@ -7,7 +7,7 @@ from urllib.parse import urlparse, parse_qs
 model, _ = torch.hub.load(repo_or_dir='snakers4/silero-models', model='silero_tts',
                           language='ru', speaker='v4_ru', trust_repo=True, verbose=False)
 
-def synth(text: str, speaker: str = 'baya') -> bytes:
+def synth(text: str, speaker: str = 'aidar') -> bytes:
     audio = model.apply_tts(text=text, speaker=speaker, sample_rate=48000)
     a = (audio.numpy() * 32767).astype(np.int16)
     buf = io.BytesIO()
@@ -21,10 +21,12 @@ class H(BaseHTTPRequestHandler):
         u = urlparse(self.path)
         if u.path != '/say':
             self.send_response(404); self.end_headers(); return
-        text = (parse_qs(u.query).get('text') or [''])[0]
+        q = parse_qs(u.query)
+        text = (q.get('text') or [''])[0]
+        speaker = (q.get('speaker') or ['aidar'])[0]
         if not text:
             self.send_response(400); self.end_headers(); return
-        data = synth(text)
+        data = synth(text, speaker)
         self.send_response(200)
         self.send_header('Content-Type', 'audio/wav')
         self.send_header('Content-Length', str(len(data)))
