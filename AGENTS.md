@@ -75,3 +75,14 @@
 - Запуск: `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome --remote-debugging-port=9224 --user-data-dir="/Users/tatiana/Desktop/Обучение ИИ/proekty/Мои проекты/.chrome-profile"`
 - Safari не подходит: у него нет отладки. Opera не использовать.
 - Скрипт управления: `/Users/tatiana/Desktop/Обучение ИИ/proekty/Мои проекты/ii-marketolog/tools/cdp.mjs` (порт по умолчанию — 9224).
+
+## Совместная работа: я, ChatGPT и GitHub
+
+**Источник правды — git-репозиторий** `git@github.com:tatiana200382/moi-proekty.git`. Obsidian и Google Диск — для заметок и передачи файлов.
+
+- Я (агент на этом Mac) коммичу и делаю `git push` сам: SSH-ключ настроен.
+- ChatGPT **не пушим в main**. Его правки принимаются отдельной веткой `gpt/<тема>` или файлами в `05_обмен` — мержу после проверки.
+- Перед правкой чужой ветки — `git fetch` и сверка; расхождение показывать владельцу.
+- Секреты, токены и куки в репозиторий не попадают.
+
+**Сетевое ограничение (важно).** ChatGPT из России не открывается — нужен VPN. GitHub, наоборот, блокирует вход с VPN-адреса. Одновременно оба не работают без раздельного туннеля (VPN только для `chatgpt.com`). Пока этого нет: ChatGPT работает через файлы, GitHub — напрямую.
