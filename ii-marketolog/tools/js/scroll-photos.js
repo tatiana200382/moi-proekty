@@ -1,0 +1,7 @@
+(() => {
+  const img = [...document.querySelectorAll('img')].filter(i => i.width > 100)[0];
+  if (!img) return 'нет фото';
+  img.scrollIntoView({ block: 'center' });
+  const r = img.getBoundingClientRect();
+  return JSON.stringify({ x: Math.round(r.left + r.width/2), y: Math.round(r.top + r.height/2), w: Math.round(r.width) });
+})()
