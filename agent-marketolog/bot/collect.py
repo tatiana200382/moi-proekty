@@ -13,6 +13,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import re
@@ -223,6 +224,67 @@ def collect_avito(verbose=True):
     return []
 
 
+def looks_like_spam(text):
+    keywords = [k.lower() for k in CONFIG["vk"].get("spam_keywords", []) if k]
+    low = text.lower()
+    return any(k in low for k in keywords)
+
+
+def draft_vk(order):
+    first = order.client.split()[0] if order.client else ""
+    hello = f"Здравствуйте, {first}!" if first else "Здравствуйте!"
+    return (
+        f"{hello} Спасибо за сообщение — увидели. Подскажем по букету и подтвердим время. "
+        f"Silver Song Flowers."
+    )
+
+
+def parse_vk(payload):
+    now = now_msk()
+    orders, skipped = [], 0
+    for chat in payload.get("chats", []):
+        text = (chat.get("text") or "").strip()
+        peer = chat.get("peer") or ""
+        if not text:
+            continue
+        lines = [line.strip() for line in text.splitlines() if line.strip()]
+        if not lines:
+            continue
+        client = lines[0][:80]
+        date_line = lines[-1] if re.search(r"\d{1,2}:\d{2}", lines[-1]) else ""
+        created = parse_date(date_line, now) if date_line else now
+        body = lines[1:-1] if date_line else lines[1:]
+        clean = []
+        for line in body:
+            if line.startswith("·"):
+                continue
+            if re.match(r"^\d+\s+(фотограф|фото|видео|файл|документ|аудио)", line, re.I):
+                continue
+            if line in ("Ссылка", "Файл", "Фотография"):
+                continue
+            clean.append(line)
+        message = "\n".join(clean).strip()
+        if not message:
+            continue
+        if looks_like_spam(message):
+            skipped += 1
+            continue
+        key = hashlib.sha1(message.encode("utf-8")).hexdigest()[:10]
+        order = Lead(
+            source="vk",
+            client=client,
+            question=message[:500],
+            status="новая",
+            created=(created or now).isoformat(timespec="seconds"),
+            link=CONFIG["vk"].get("link", ""),
+            external_id=f"{peer or client}:{key}",
+        )
+        order.answer = draft_vk(order)
+        orders.append(order)
+    orders.sort(key=lambda x: x.created, reverse=True)
+    return orders, skipped
+
+
 def collect_vk(verbose=True):
     cfg = CONFIG["vk"]
     if not cfg.get("enabled"):
@@ -230,13 +292,17 @@ def collect_vk(verbose=True):
             print(f"ВКонтакте: выключено — {cfg.get('note', 'нет настроек')}")
         return []
     payload = run_source("vk", cfg)
+    if "/gim" not in (payload.get("url") or ""):
+        raise RuntimeError("ВК: открылась не страница сообщества — проверьте вход и адрес")
     if not payload.get("enabled", True):
         if verbose:
             print("ВКонтакте: в сообществе выключены сообщения — заявок нет")
         return []
+    orders, skipped = parse_vk(payload)
     if verbose:
-        print(f"ВКонтакте: диалогов {len(payload.get('chats', []))}")
-    return []
+        print(f"ВКонтакте: диалогов {len(payload.get('chats', []))}, заявок {len(orders)}, "
+              f"пропущено предложений услуг {skipped}")
+    return orders
 
 
 COLLECTORS = {"yandex": collect_yandex, "avito": collect_avito, "vk": collect_vk}
