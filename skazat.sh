@@ -18,7 +18,7 @@ fi
 
 # 1) Silero через сервер.
 if ready; then
-  if curl -s -m 60 -G --data-urlencode "text=$TEXT" --data-urlencode "speaker=eugene" "http://127.0.0.1:$PORT/say" -o "$OUT" && [ -s "$OUT" ]; then
+  if curl -s -m 60 -G --data-urlencode "text=$TEXT" --data-urlencode "speaker=baya" "http://127.0.0.1:$PORT/say" -o "$OUT" && [ -s "$OUT" ]; then
     afplay -v 2.0 "$OUT"; rm -f "$OUT"; exit 0
   fi
 fi
