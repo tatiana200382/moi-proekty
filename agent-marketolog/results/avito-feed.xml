@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Ads formatVersion="3" target="Avito.ru">
+  <Ad>
+    <Id>buket-lizianthus</Id>
+    <Category>Цветы</Category>
+    <GoodsType>Букеты</GoodsType>
+    <Title>Букет лизиантусов (9 шт)</Title>
+    <Description><![CDATA[Девять стеблей лизиантуса в упаковке. Собираем в день заказа, пришлём фото до отправки.]]></Description>
+    <Price>4500</Price>
+    <Address>Санкт-Петербург, Ленинский проспект, 56</Address>
+    <City>Санкт-Петербург</City>
+  </Ad>
+  <Ad>
+    <Id>buket-belye-rozy</Id>
+    <Category>Цветы</Category>
+    <GoodsType>Букеты</GoodsType>
+    <Title>Букет белых роз (80 см)</Title>
+    <Description><![CDATA[Белые розы длиной 80 см. Проверьте букет при получении — если что-то не так, заменим на месте.]]></Description>
+    <Price>11000</Price>
+    <Address>Санкт-Петербург, улица Белышева, 5/6</Address>
+    <City>Санкт-Петербург</City>
+  </Ad>
+  <Ad>
+    <Id>buket-sumochka</Id>
+    <Category>Цветы</Category>
+    <GoodsType>Букеты</GoodsType>
+    <Title>Букет с розами в сумочке</Title>
+    <Description><![CDATA[Небольшой букет в сумочке: розы, гвоздики, хризантемы. Магазин на Трибуца работает круглосуточно.]]></Description>
+    <Price>1950</Price>
+    <Address>Санкт-Петербург, улица Адмирала Трибуца, 8</Address>
+    <City>Санкт-Петербург</City>
+  </Ad>
+</Ads>
