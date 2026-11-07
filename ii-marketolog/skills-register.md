@@ -53,3 +53,17 @@
 - Все восемь файлов — на английском. Модель читает их нормально, но результат обязан быть по-русски.
 - Учебные примеры внутри навыков — западные SaaS-компании. Переносить их выводы на локальные услуги без проверки нельзя.
 - Обновления библиотеки не подтягиваются автоматически: файлы скачаны один раз, дата — 2026-11-04.
+
+## Дозакупка 2026-11-07: визуал и посты
+
+Сравнение 30 кандидатов — в `agent-marketolog/vybor-instrumentov-2026-11-07.md`.
+
+| Файл | Источник | Лицензия | Статус |
+|---|---|---|---|
+| `skills/social.md` | coreyhaines31/marketingskills | MIT | подключён |
+| `skills/image.md` | coreyhaines31/marketingskills | MIT | подключён |
+| `skills/marketing-ideas.md` | coreyhaines31/marketingskills | MIT | подключён |
+| `skills/canvas-design.md` | anthropics/skills | Apache 2.0 | подключён |
+| `skills/hallmark.md` | Nutlope/hallmark | MIT | подключён |
+
+Плюс собственный инструмент: рендер HTML→PNG через Chrome headless (`agent-marketolog/tools/render.sh`), шаблон `templates/post-card.html`, демо `results/post-card-demo.png`. Проверено: 1080×1350, знак `₽` и кириллица рисуются.
