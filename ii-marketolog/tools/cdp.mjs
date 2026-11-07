@@ -93,6 +93,27 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
         userGesture: true,
       });
       console.log(typeof r2.result?.value === "string" ? r2.result.value : JSON.stringify(r2.result, null, 2));
+    } else if (cmd === "clickxy") {
+      const x = Number(args[1]), y = Number(args[2]);
+      await send("Input.dispatchMouseEvent", { type: "mousePressed", x, y, button: "left", clickCount: 1 });
+      await send("Input.dispatchMouseEvent", { type: "mouseReleased", x, y, button: "left", clickCount: 1 });
+      console.log("клик", x, y);
+    } else if (cmd === "type") {
+      await send("Input.insertText", { text: args[1] });
+      console.log("введено", String(args[1]).length, "символов");
+    } else if (cmd === "key") {
+      const key = args[1] || "Enter";
+      await send("Input.dispatchKeyEvent", { type: "keyDown", key, code: key, windowsVirtualKeyCode: 13 });
+      await send("Input.dispatchKeyEvent", { type: "keyUp", key, code: key, windowsVirtualKeyCode: 13 });
+      console.log("нажато", key);
+    } else if (cmd === "upload") {
+      const files = args.slice(1, -1).filter((a) => a.endsWith(".jpg") || a.endsWith(".png"));
+      const r = await send("Runtime.evaluate", { expression: "document.querySelector('input[type=file]')", objectGroup: "upload" });
+      if (!r.result || !r.result.objectId) { console.log("нет поля загрузки"); }
+      else {
+        await send("DOM.setFileInputFiles", { objectId: r.result.objectId, files });
+        console.log("загружено файлов:", files.length);
+      }
     } else if (cmd === "cookies") {
       await send("Network.enable");
       const r = await send("Network.getAllCookies");
