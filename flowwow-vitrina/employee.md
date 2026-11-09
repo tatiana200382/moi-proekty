@@ -83,6 +83,17 @@
 
 Другие команды: «Витрина, посчитай цену…», «Витрина, план промо на декабрь, бюджет 10 000 ₽», «Витрина, разбери, почему мало заказов».
 
+## С чего начинать (аудит 09.11.2026)
+
+Публичная витрина: рейтинг 4,52, 73 оценки, 44 покупки за 4 года, последний отзыв — январь 2022, у товаров остаток «последний», стоимость доставки не показана, новогодних и «маме» товаров нет. Поэтому порядок такой:
+
+1. Показать стоимость доставки и настроить зоны.
+2. Поставить остатки или время изготовления на 10–15 ходовых товаров.
+3. Добавить 5–10 свежих позиций под День матери (29.11) и Новый год.
+4. Переписать 10 карточек: название, состав, размеры, вес, 6 фото.
+5. Заполнить Топ-18 и добавить 2–3 доп. товара.
+6. Только после первых отзывов — тест «Продвижения» на 1 000 бонусов.
+
 ## Связанные файлы
 
 - [knowledge.md](knowledge.md) — факты о магазине и правилах Flowwow.
@@ -91,3 +102,13 @@
 - [state.md](state.md) — текущее состояние и следующий шаг.
 - [examples.md](examples.md) — примеры и критерии.
 - [lessons.md](lessons.md) — уроки.
+- [research/flowwow-pravila-i-mehaniki.md](research/flowwow-pravila-i-mehaniki.md) — ставки, выдача, праздники.
+- [research/audit-magazina-2026-11-09.md](research/audit-magazina-2026-11-09.md) — что видит покупатель.
+- [research/rynok-spb.md](research/rynok-spb.md) — конкуренты Петербурга.
+- [research/strategiya-prodvizheniya.md](research/strategiya-prodvizheniya.md) — 10 рычагов и план.
+- [research/oficialnye-pravila.md](research/oficialnye-pravila.md) — подробный разбор официальных источников.
+- [research/kejsy.md](research/kejsy.md) — кейсы продавцов.
+- [research/instrumenty-github.md](research/instrumenty-github.md) — сравнение инструментов.
+- [research/video-i-kursy.md](research/video-i-kursy.md) — курсы и видео.
+- [tools/flowwow-calc.mjs](tools/flowwow-calc.mjs) — калькулятор выплаты.
+- [tools/flowwow-api.mjs](tools/flowwow-api.mjs) — чтение данных магазина.
