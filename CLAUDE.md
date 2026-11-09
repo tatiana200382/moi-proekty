@@ -82,3 +82,8 @@
 - Запуск: `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome --remote-debugging-port=9224 --user-data-dir="/Users/tatiana/Desktop/Обучение ИИ/proekty/Мои проекты/.chrome-profile"`
 - Safari не подходит: у него нет отладки. Opera не использовать.
 - Скрипт управления: `/Users/tatiana/Desktop/Обучение ИИ/proekty/Мои проекты/ii-marketolog/tools/cdp.mjs` (порт по умолчанию — 9224).
+
+## Obsidian: обязательный итог
+
+Итог каждой задачи — **5–7 строк** заметкой в `~/AI-Memory-Lab/01_проекты/<проект>/`: что сделали, где файл, что осталось.
+Черновики, код и переписка остаются в проекте и GitHub. Формат и правила — `~/Desktop/Обучение ИИ/proekty/Мои проекты/PRAVILA.md`, раздел «Рабочие области и Obsidian».
