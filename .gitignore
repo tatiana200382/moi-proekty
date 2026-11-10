@@ -14,3 +14,6 @@ agent-marketolog/leads/*.json
 agent-marketolog/leads/outbox/
 agent-marketolog/leads/.collect-state.json
 agent-marketolog/bot/chat_id
+
+# Профиль браузера: куки и сессии, в GitHub не попадают
+.chrome-maps/
