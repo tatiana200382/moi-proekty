@@ -47,7 +47,7 @@ def run(minutes: int) -> None:
     seen = {sha256(p) for p in DST.glob('*.jpg')}
     started = time.time()
     # берём только то, что появилось/обновилось после запуска (с запасом 2 минуты)
-    since = started - 120
+    snapshot = {q.name for q in MEDIA.iterdir() if q.is_file()}
     total = 0
     print(f'слежу за кэшем {minutes} мин, папка {DST}')
     while time.time() - started < minutes * 60:
@@ -56,7 +56,7 @@ def run(minutes: int) -> None:
                 continue
             if p.stat().st_size < MIN_BYTES:
                 continue
-            if p.stat().st_mtime < since:
+            if p.name in snapshot:
                 continue
             digest = sha256(p)
             if digest in seen:
