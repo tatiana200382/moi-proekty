@@ -31,3 +31,6 @@ marketing-otdel/tools/bin/
 # Python cache
 __pycache__/
 *.pyc
+
+# Вендорные python-пакеты (ставятся командой, не хранятся)
+marketing-otdel/tools/vendor/

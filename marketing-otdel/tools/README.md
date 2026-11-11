@@ -14,6 +14,8 @@
 | Фото | `python3 tools/photo.py --in … --out …` | кроп 4:5, 1080×1350, водяной знак |
 | Видео | `./tools/ffmpeg.sh …` | ffmpeg 9.0, бинарник в `~/.local/bin/ffmpeg` |
 | Дневной прогон | `./tools/dennoy-progon.sh` | доступы → данные → отчёт → дашборд одной командой |
+| QR для зала | `python3 tools/qr.py --url … --out …` | QR-плакат с подписью (segno + Pillow) |
+| Прогресс к цели | `python3 tools/prodazhi.py` | 35 продаж: сколько есть, темп, прогноз |
 
 ## Быстрый старт
 
@@ -54,6 +56,13 @@ date,channel,spend,impressions,clicks,leads,orders,revenue,source,note
 ```
 
 Пустая ячейка = «данных нет», а не ноль. Отчёт честно пишет «нет данных», пока заявки не заведены.
+
+## QR
+
+```bash
+pip install --target tools/vendor segno
+python3 tools/qr.py --url "https://vk.me/s_sflowers?utm_source=zal" --out results/qr-zal.png
+```
 
 ## Фото
 
