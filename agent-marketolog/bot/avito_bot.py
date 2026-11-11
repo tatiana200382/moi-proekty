@@ -54,7 +54,9 @@ class Lead:
 
     def save(self) -> str:
         name = f"avito-{datetime.now().strftime('%Y%m%d-%H%M%S')}.json"
-        path = os.path.join(LEADS_DIR, name)
+        folder = os.environ.get("AVITO_LEADS_DIR") or LEADS_DIR
+        os.makedirs(folder, exist_ok=True)
+        path = os.path.join(folder, name)
         with open(path, "w", encoding="utf-8") as f:
             json.dump(self.__dict__, f, ensure_ascii=False, indent=2)
         return path
@@ -99,6 +101,8 @@ class Bot:
 
 if __name__ == "__main__":
     import sys
+    if "--demo" in sys.argv:
+        os.environ["AVITO_LEADS_DIR"] = os.path.join(os.path.dirname(__file__), "..", "leads-demo")
     bot = Bot()
     print("БОТ:", bot.start(), "\n")
     demo = ["День рождения", "завтра к 18:00", "до 4 000", "доставка, Ленинский 56, кв 12", "Анна, +7 900 000-00-00"]
@@ -108,4 +112,4 @@ if __name__ == "__main__":
         print("БОТ:", reply, "\n")
         if ready: break
     if "--demo" in sys.argv:
-        print("ФАЙЛ:", sorted(os.listdir(LEADS_DIR))[-1])
+        print("ФАЙЛ (демо, в боевую папку не попадает):", sorted(os.listdir(LEADS_DIR))[-1])
