@@ -15,7 +15,9 @@ if [ -f "$PIDFILE" ]; then
   fi
 fi
 
-nohup "$ROOT/otdel-prodazh/tools/watch-sales.command" >> "$LOG" 2>&1 &
+# os.setsid отвязывает цикл от текущего терминала: закрыли окно — отдел работает.
+python3 -c 'import os,sys; os.setsid(); os.execv(sys.argv[1], sys.argv[1:])' \
+  "$ROOT/otdel-prodazh/tools/watch-sales.command" >> "$LOG" 2>&1 &
 sleep 2
 if [ -f "$PIDFILE" ] && kill -0 "$(cat "$PIDFILE" 2>/dev/null)" 2>/dev/null; then
   echo "Запущено в фоне (PID $(cat "$PIDFILE")). Лог: $LOG"
