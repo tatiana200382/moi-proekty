@@ -1,0 +1,1 @@
+(() => { const i=document.querySelector('[data-marker="geo/field/suggest"] input'); if(!i) return 'нет'; i.focus(); const s=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set; s.call(i,''); i.dispatchEvent(new Event('input',{bubbles:true})); return 'очищено'; })()

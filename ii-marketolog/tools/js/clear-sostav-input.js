@@ -1,0 +1,1 @@
+(() => { const i=document.querySelector('[data-marker="sostav_buketa/search-input"]'); if(!i) return 'нет'; const s=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set; s.call(i,''); i.dispatchEvent(new Event('input',{bubbles:true})); i.focus(); return 'очистил'; })()

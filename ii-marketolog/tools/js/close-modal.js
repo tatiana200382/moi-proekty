@@ -1,0 +1,1 @@
+(() => { const b=[...document.querySelectorAll('button')].find(x=>{const r=x.getBoundingClientRect(); return r.width<50 && r.height<50 && r.top<300;}); if(b){b.click(); return 'закрыл';} return 'нет'; })()

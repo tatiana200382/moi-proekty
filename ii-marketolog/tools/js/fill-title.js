@@ -1,0 +1,1 @@
+(() => { const i=document.querySelector('input[name="title"]') || [...document.querySelectorAll('input')].find(x=>/Название/.test((x.closest('div')||{}).innerText||'')); if(!i) return 'нет'; i.scrollIntoView({block:'center'}); i.focus(); return 'фокус '+(i.name||''); })()

@@ -1,0 +1,1 @@
+(() => { const inp=[...document.querySelectorAll('input')].find(i=>/ТН ВЭД|код/i.test(i.placeholder||'') || (i.closest('div')&&/ТН ВЭД/.test((i.closest('div').parentElement||{}).innerText||''))); if(!inp) return 'нет поля'; inp.scrollIntoView({block:'center'}); inp.focus(); return 'фокус'; })()

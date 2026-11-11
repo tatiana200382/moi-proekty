@@ -1,0 +1,1 @@
+(() => { const b=[...document.querySelectorAll('button')].find(x=>/^Продолжить/.test((x.innerText||'').trim())); if(!b) return 'нет'; b.scrollIntoView({block:'center'}); b.click(); return 'нажал'; })()
