@@ -20,3 +20,6 @@ agent-marketolog/bot/chat_id
 
 # персональные данные клиентов — не коммитить
 Секретарь/klienty-*.csv
+
+# Бинарники инструментов не храним в git
+marketing-otdel/tools/bin/
