@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Отдел продаж: заявки → готовые карточки → MAX → отчёт.
+"""Отдел продаж: заявки → карточки заявок → MAX → отчёт.
 
 Что делает:
   * читает заявки, которые собрал бот Вовы (agent-marketolog/leads/);
   * проверяет, хватает ли данных для работы (контакт, состав, сумма);
   * делит на «готовые» (A), «нужно уточнить» (B) и «не заявка» (C);
-  * отправляет владельцу в MAX готовые карточки с действием и дедлайном;
+  * отправляет владельцу в MAX карточки заявок с действием и дедлайном;
   * дважды в день присылает короткий итог, в пятницу — итог недели;
   * считает результат: заказы, выручку, потери, просрочки.
 
@@ -186,7 +186,7 @@ def deadline_for(d: dict, q: dict) -> str:
 
 def render_card(entry: dict) -> str:
     q = entry["readiness"]
-    title = "ГОТОВАЯ ЗАЯВКА" if q == "A" else "НУЖНО УТОЧНИТЬ"
+    title = "КАРТОЧКА ЗАЯВКИ · готова" if q == "A" else "КАРТОЧКА ЗАЯВКИ · уточнить"
     src = SOURCE_NAMES.get(entry["source"], entry["source"])
     lines = [f"{ICONS.get(q, '⚪')} {title} · {src}"]
     if entry.get("external_id"):
@@ -361,12 +361,12 @@ def digest_text(state: dict) -> str:
         except ValueError:
             pass
     lines = [f"📊 Отдел продаж · {now().strftime('%d.%m.%Y, %H:%M')}"]
-    lines.append(f"Готовых к действию: {len(a)} · ждут уточнения: {len(b)} · просрочено: {len(overdue)}")
+    lines.append(f"Карточек к действию: {len(a)} · ждут уточнения: {len(b)} · просрочено: {len(overdue)}")
     lines.append(f"Подтверждённых заказов: {len(orders)} · выручка: {revenue:,} ₽".replace(",", " "))
     lines.append(f"Потерь: {len(lost)}")
     if a:
         lines.append("")
-        lines.append("Готовые:")
+        lines.append("Можно звонить:")
         for x in a[:7]:
             who = x["client"] or x["contact"] or x["id"]
             lines.append(f"• {who} · {x.get('amount') or 'сумма не указана'} · до {fmt_dt(x['deadline'])}")
@@ -482,7 +482,7 @@ def show_status() -> None:
     for k in ("new", "sent", "in_work", "order", "lost", "archive", "skip", "send_error"):
         if counts.get(k):
             print(f"  {k}: {counts[k]}")
-    print(f"Готовых A: {len(active(state, 'A'))} · B: {len(active(state, 'B'))}")
+    print(f"Карточек A: {len(active(state, 'A'))} · B: {len(active(state, 'B'))}")
     print(f"Последний запуск: {state.get('last_run') or '—'}")
     print(f"CSV: {CSV_FILE}")
 

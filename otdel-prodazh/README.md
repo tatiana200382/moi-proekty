@@ -6,11 +6,11 @@
 
 ## Автономный режим
 
-Отдел работает сам: каждые 5 минут читает новые заявки с Яндекс.Карт и из группы ВК, проверяет полноту, отправляет владельцу в MAX **готовые карточки** с действием и дедлайном, дважды в день присылает итог и в пятницу — итог недели.
+Отдел работает сам: каждые 5 минут читает новые заявки с Яндекс.Карт и из группы ВК, проверяет полноту, отправляет владельцу в MAX **карточки заявок** с действием и дедлайном, дважды в день присылает итог и в пятницу — итог недели.
 
 - Что делает сам и что решает владелец — [`avtonomiya.md`](avtonomiya.md).
-- Что делать с карточкой — [`pamyatka-vladeltsa.md`](pamyatka-vladeltsa.md).
-- Стандарт готовой заявки — [`processy/gotovaya-zayavka.md`](processy/gotovaya-zayavka.md).
+- Что делать с карточкой заявки — [`pamyatka-vladeltsa.md`](pamyatka-vladeltsa.md).
+- Стандарт карточки заявки — [`processy/kartochka-zayavki.md`](processy/kartochka-zayavki.md).
 - Отчёты — [`otchetnost.md`](otchetnost.md).
 - Если сломалось — [`runbook.md`](runbook.md).
 
@@ -24,7 +24,7 @@
 | Понять правила отдела | [`AGENTS.md`](AGENTS.md) |
 | Проверить факты и цифры | [`baza-znaniy.md`](baza-znaniy.md) |
 | Увидеть, как отдел работает сам | [`avtonomiya.md`](avtonomiya.md) |
-| Понять, что такое «готовая заявка» | [`processy/gotovaya-zayavka.md`](processy/gotovaya-zayavka.md) |
+| Понять, что такое «карточка заявки» | [`processy/kartochka-zayavki.md`](processy/kartochka-zayavki.md) |
 | Увидеть, где теряются деньги | [`strategiya/voronka-prodazh.md`](strategiya/voronka-prodazh.md) |
 | Изучить 50 успешных бизнесов | [`strategiya/keysy-50-cvetochnyh-biznesov.md`](strategiya/keysy-50-cvetochnyh-biznesov.md) |
 | Понять, что применяем у нас | [`strategiya/chto-primenyat-u-nas.md`](strategiya/chto-primenyat-u-nas.md) |
@@ -60,8 +60,8 @@
 - Программа обучения: 6 модулей, экзамен, зачёт по кейсам, статус — `obuchenie/`.
 - Выбор инструментов: 22 репозитория проверены по GitHub API — `instrumenty/`.
 - Единая таблица заявок и готовый CSV — `instrumenty/`.
-- Автономный цикл: сбор → проверка → готовая карточка в MAX → итоги — `tools/`.
-- Регламент автономности, стандарт заявки, отчётность и runbook — `avtonomiya.md`, `processy/gotovaya-zayavka.md`, `otchetnost.md`, `runbook.md`.
+- Автономный цикл: сбор → проверка → карточка заявки в MAX → итоги — `tools/`.
+- Регламент автономности, стандарт заявки, отчётность и runbook — `avtonomiya.md`, `processy/kartochka-zayavki.md`, `otchetnost.md`, `runbook.md`.
 - Процессы: дневной ритм, недельный цикл, RACI, бриф, отчёт, метрики — `processy/`.
 - Семь ролей с паспортами и полномочиями — `sotrudniki/`.
 
