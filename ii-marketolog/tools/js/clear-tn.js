@@ -1,0 +1,1 @@
+(() => { const inps=[...document.querySelectorAll('input')].filter(i=>i.getBoundingClientRect().top>0); const i=inps.find(x=>document.activeElement===x) || inps[0]; if(!i) return 'нет'; const s=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set; s.call(i,''); i.dispatchEvent(new Event('input',{bubbles:true})); i.focus(); return 'очистил'; })()
