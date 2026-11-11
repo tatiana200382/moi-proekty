@@ -65,9 +65,11 @@ function flag(name, def) {
   return i === -1 ? def : args[i + 1];
 }
 
-async function withPage(fn, tabIndex = 0) {
+const TAB = Number(flag("tab", 0));
+
+async function withPage(fn, tabIndex = Number(flag("tab", 0))) {
   const list = await pages();
-  const page = list[tabIndex];
+  const page = list[tabIndex] || list[0];
   if (!page) throw new Error("нет вкладок — Chrome под управлением не запущен?");
   const { ws, send } = await connect(page.webSocketDebuggerUrl);
   try {
