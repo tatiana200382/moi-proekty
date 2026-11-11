@@ -130,8 +130,29 @@ def lead_key(d: dict) -> str:
     return f"{d.get('source','?')}:{hashlib.sha1(raw.encode()).hexdigest()[:10]}"
 
 
+PLACEHOLDER_PHONES = {"+7 900 000-00-00", "8 900 000-00-00", "000-00-00", "+7 000 000-00-00"}
+
+
+def _digits(value: str) -> str:
+    return "".join(ch for ch in value if ch.isdigit())
+
+
 def has_contact(d: dict) -> bool:
-    return bool((d.get("contact") or "").strip() or (d.get("email") or "").strip())
+    """Контакт годен, если это почта или телефон нормального вида, а не заглушка."""
+    email = (d.get("email") or "").strip()
+    if "@" in email and "." in email.split("@")[-1]:
+        return True
+    phone = (d.get("contact") or "").strip()
+    if not phone:
+        return False
+    if phone in PLACEHOLDER_PHONES or "000-00-00" in phone:
+        return False
+    digits = _digits(phone)
+    if len(digits) < 10:
+        return False
+    if len(set(digits)) <= 2:          # 0000000000, 1111111111
+        return False
+    return True
 
 
 def has_order(d: dict) -> bool:
@@ -141,8 +162,20 @@ def has_order(d: dict) -> bool:
 
 
 def is_test(d: dict) -> bool:
+    """Тест и демо не должны попадать в боевую воронку."""
     client = (d.get("client") or "").lower()
-    return client in {"test user", "тест", "test"} or "test user" in client
+    question = (d.get("question") or "").lower()
+    contact = (d.get("contact") or "").lower()
+    if client in {"test user", "тест", "test"} or "test user" in client:
+        return True
+    if "demo" in client or "демо" in client or "демо" in question:
+        return True
+    if contact in {p.lower() for p in PLACEHOLDER_PHONES} or "000-00-00" in contact:
+        return True
+    # заявка без внешнего id и без ссылки из чат-источника — почти всегда демо
+    if d.get("source") in {"avito", "vk", "telegram"} and not str(d.get("external_id") or "").strip() and not str(d.get("link") or "").strip():
+        return True
+    return False
 
 
 def qualify(d: dict) -> dict:
@@ -164,6 +197,9 @@ def qualify(d: dict) -> dict:
     if not contact and not order:
         return {"code": "C", "why": "нет контакта и нет заказа", "missing": missing,
                 "action": "проверить источник вручную"}
+    if not contact:
+        return {"code": "C", "why": "нет пригодного контакта (заглушка или неполный номер)",
+                "missing": missing, "action": "проверить диалог в источнике вручную"}
     if contact and order:
         return {"code": "A", "why": "есть контакт и заказ", "missing": missing,
                 "action": "позвонить, подтвердить дату, время и адрес; сверить состав"}
@@ -177,7 +213,12 @@ def qualify(d: dict) -> dict:
 def deadline_for(d: dict, q: dict) -> str:
     created = parse_dt(d.get("created") or "")
     base = created if created and created.date() == now().date() else now()
-    delta = timedelta(hours=2) if q["code"] == "A" else timedelta(hours=6)
+    # регламент отдела: A — 15 минут, B — 2 часа, ночью — до 09:30
+    hour = now().hour
+    if hour >= 22 or hour < 9:
+        value = base.replace(hour=9, minute=30, second=0, microsecond=0) + timedelta(days=1 if hour >= 22 else 0)
+        return iso(value)
+    delta = timedelta(minutes=15) if q["code"] == "A" else timedelta(hours=2)
     value = base + delta
     if value < now():
         value = now() + timedelta(minutes=30)
@@ -317,7 +358,7 @@ def send_new(limit: int = 5) -> int:
     state = load_state()
     sent = 0
     for entry in sorted(state["leads"].values(), key=lambda x: x.get("created", "")):
-        if entry["status"] != "new" or entry["readiness"] != "A":
+        if entry["status"] != "new" or entry["readiness"] not in {"A", "B"}:
             continue
         if sent >= limit:
             break
@@ -472,6 +513,25 @@ def auto() -> None:
         send_weekly()
 
 
+def requalify() -> int:
+    """Пересчитать готовность и дедлайн у всех заявок по текущим правилам."""
+    state = load_state()
+    changed = 0
+    for entry in state["leads"].values():
+        q = qualify(entry)
+        if entry.get("readiness") != q["code"]:
+            entry["readiness"] = q["code"]
+            entry["action"] = q["action"]
+            entry["why"] = q["why"]
+            entry["deadline"] = deadline_for(entry, q)
+            changed += 1
+    save_state(state)
+    write_csv(state)
+    log(f"requalify: пересчитано {changed}")
+    print(f"пересчитано заявок: {changed}")
+    return changed
+
+
 def show_status() -> None:
     state = load_state()
     rows = list(state["leads"].values())
@@ -517,6 +577,7 @@ def main() -> None:
     p.add_argument("--digest", action="store_true", help="итог дня в MAX")
     p.add_argument("--weekly", action="store_true", help="итог недели в MAX")
     p.add_argument("--auto", action="store_true", help="sync + send + итоги по расписанию")
+    p.add_argument("--requalify", action="store_true", help="пересчитать готовность и дедлайны")
     p.add_argument("--status", action="store_true", help="показать состояние")
     p.add_argument("--demo", action="store_true", help="показать примеры карточек")
     p.add_argument("--preview", action="store_true", help="показать итог дня и недели без отправки")
@@ -533,6 +594,8 @@ def main() -> None:
         print(digest_text(state))
         print("\n" + "=" * 40 + "\n")
         print(weekly_text(state))
+    elif args.requalify:
+        requalify()
     elif args.mark:
         mark(args.mark[0], args.mark[1], args.amount, args.note)
     elif args.status:
