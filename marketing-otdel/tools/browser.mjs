@@ -66,10 +66,11 @@ function flag(name, def) {
 }
 
 const TAB = Number(flag("tab", 0));
+const MATCH = flag("match", "");
 
 async function withPage(fn, tabIndex = Number(flag("tab", 0))) {
   const list = await pages();
-  const page = list[tabIndex] || list[0];
+  const page = MATCH ? list.find((t) => t.url.includes(MATCH)) : list[tabIndex] || list[0];
   if (!page) throw new Error("нет вкладок — Chrome под управлением не запущен?");
   const { ws, send } = await connect(page.webSocketDebuggerUrl);
   try {
@@ -165,11 +166,18 @@ const CABINETS = [
     return;
   }
 
+  if (cmd === "front") {
+    await withPage(async (send) => { await send("Page.bringToFront"); });
+    console.log("вкладка активна");
+    return;
+  }
+
   if (cmd === "shot") {
     const out = args[1];
     const url = flag("url", "");
     const wait = Number(flag("wait", url ? 6000 : 800));
     await withPage(async (send) => {
+      await send("Page.bringToFront");
       if (url) {
         await send("Page.navigate", { url });
       }
