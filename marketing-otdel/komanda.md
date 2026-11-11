@@ -10,13 +10,15 @@
 |---|---|---|---|---|---|---|
 | 1 | — | **Директор по маркетингу** | приоритеты, план недели, приёмка, отчёт владельцу | заявки и выручка из онлайна | marketing skills, Metabase, n8n | [`../direktor-marketinga/`](../direktor-marketinga/employee.md) |
 | 2 | **Лика** | SMM и контент | контент-план, посты ВК/Telegram, сторис, тексты, ответы на комментарии | заявки из соцсетей | Postiz, Remotion, Penpot, ImageMagick, rembg | [`sotrudniki/lika-smm/`](sotrudniki/lika-smm/employee.md) |
-| 3 | **Тимур** | Платный трафик | Директ, ВК Реклама, продвижение карточек, Авито, тесты | цена заявки ≤ 300 ₽ | n8n, google-ads-python, Meta SDK, Метрика | [`sotrudniki/timur-performance/`](sotrudniki/timur-performance/employee.md) |
+| 3 | **Тимур** | Платный трафик | Директ, ВК Реклама, продвижение карточек, платное продвижение Авито, тесты | цена заявки ≤ 300 ₽ | n8n, google-ads-python, Meta SDK, Метрика | [`sotrudniki/timur-performance/`](sotrudniki/timur-performance/employee.md) |
 | 4 | **Ян** | Сайт, SEO, карты | сайт, карточки Яндекс/2ГИС, локальное SEO, UTM, скорость | звонки и маршруты с карточек | Unlighthouse, Lighthouse, SerpBear, Astro | [`sotrudniki/yan-seo/`](sotrudniki/yan-seo/employee.md) |
 | 5 | **Дана** | Аналитика | сбор цифр, дашборд, воронка, юнит-экономика, журнал тестов | отчёт в понедельник до 12:00 | Metabase/Sheets, Python, Evidence | [`sotrudniki/dana-analitika/`](sotrudniki/dana-analitika/employee.md) |
 | 6 | **Марта** | CRM и удержание | база клиентов, повторные покупки, напоминания к праздникам, отзывы | повторные покупки за 90 дней | Twenty/EspoCRM, listmonk, Chatwoot | [`sotrudniki/marta-crm/`](sotrudniki/marta-crm/employee.md) |
 | 7 | **Олег** | B2B и партнёрства | офисы, отели, рестораны, свадьбы, события, коллаборации | 10 точек в работе, 3 сделки/мес | Twenty CRM, listmonk, Penpot | [`sotrudniki/oleg-b2b/`](sotrudniki/oleg-b2b/employee.md) |
-| 8 | **Вова** | Производство контента | пишет посты, делает фото и карточки по брифу Лики | сдано в срок и без правок | render.sh, card-gen.py, Chrome | [`../agent-marketolog/`](../agent-marketolog/AGENTS.md) |
+| 8 | **Вова** | Производство контента и Авито | пишет посты, делает фото, ведёт объявления Авито | заявки в сообщениях Авито | render.sh, card-gen.py, Chrome | [`../agent-marketolog/`](../agent-marketolog/AGENTS.md) |
 | 9 | **Витрина** | Маркетплейс Flowwow | карточки, цены, промо, остатки на площадке | заказы Flowwow | Flowwow API, калькулятор | [`../flowwow-vitrina/`](../flowwow-vitrina/employee.md) |
+
+Владельцы каналов — в [`kanaly-vladelcy.md`](kanaly-vladelcy.md): один канал — один владелец.
 
 ## Кто кому подчиняется
 
