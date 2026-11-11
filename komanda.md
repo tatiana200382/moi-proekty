@@ -15,7 +15,7 @@
 | Креативный директор | идея, бриф, референсы, стиль, приёмка креатива | `kreativnyy-direktor/` | обучается |
 | Директор по продажам | глава отдела: план, конверсия, приёмка, отчёт | `otdel-prodazh/sotrudniki/direktor-prodazh/` | собран 11.11, ждёт «да» на таблицу |
 | Ника | входящие звонки и заявки | `otdel-prodazh/sotrudniki/nika-vhodyashchie/` | собран, ждёт решения по телефонии |
-| Ева | переписка: ВК, Telegram, WhatsApp, карты | `otdel-prodazh/sotrudniki/eva-perepiska/` | собран, разбирает 11 сообщений ВК |
+| Ева | переписка: группа ВК Silver Song Flowers, Telegram, WhatsApp, карты | `otdel-prodazh/sotrudniki/eva-perepiska/` | собран, работает с группой ВК |
 | Стас | розница и допродажи в зале | `otdel-prodazh/sotrudniki/stas-roznitsa/` | собран, ждёт прайс |
 | Лиза | дожим и возврат потерянных обращений | `otdel-prodazh/sotrudniki/liza-dozhim/` | собран, старт после таблицы |
 | Пётр | заказы, доставка, фото, претензии | `otdel-prodazh/sotrudniki/petr-zakazy/` | собран, аудит доставки |
