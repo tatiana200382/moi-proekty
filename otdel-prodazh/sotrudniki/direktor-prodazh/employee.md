@@ -56,7 +56,7 @@
 
 ## Обучение
 
-Все 5 модулей, экзамен — [`../../obuchenie/ekzamen.md`](../../obuchenie/ekzamen.md). Практика — план недели на реальных цифрах.
+Все 6 модулей, экзамен — [`../../obuchenie/ekzamen.md`](../../obuchenie/ekzamen.md). Практика — план недели на реальных цифрах. Зачёт по 50 кейсам — [`../../obuchenie/zachet-50-keysov.md`](../../obuchenie/zachet-50-keysov.md).
 
 ## Запуск
 

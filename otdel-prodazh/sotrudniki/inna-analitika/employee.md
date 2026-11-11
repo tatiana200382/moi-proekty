@@ -54,8 +54,8 @@
 
 ## Обучение
 
-Модули 1, 2, 4, 5. Практика — таблица недели на реальных данных.
-Экзамен — [`../../obuchenie/ekzamen.md`](../../obuchenie/ekzamen.md).
+Модули 1, 2, 4, 5, 6. Практика — таблица недели на реальных данных.
+Экзамен — [`../../obuchenie/ekzamen.md`](../../obuchenie/ekzamen.md). Зачёт по 50 кейсам — [`../../obuchenie/zachet-50-keysov.md`](../../obuchenie/zachet-50-keysov.md).
 
 ## Запуск
 

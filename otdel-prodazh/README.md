@@ -12,6 +12,8 @@
 | Понять правила отдела | [`AGENTS.md`](AGENTS.md) |
 | Проверить факты и цифры | [`baza-znaniy.md`](baza-znaniy.md) |
 | Увидеть, где теряются деньги | [`strategiya/voronka-prodazh.md`](strategiya/voronka-prodazh.md) |
+| Изучить 50 успешных бизнесов | [`strategiya/keysy-50-cvetochnyh-biznesov.md`](strategiya/keysy-50-cvetochnyh-biznesov.md) |
+| Понять, что применяем у нас | [`strategiya/chto-primenyat-u-nas.md`](strategiya/chto-primenyat-u-nas.md) |
 | Взять готовые фразы | [`strategiya/skripty-prodazh.md`](strategiya/skripty-prodazh.md) |
 | Понять ритм дня и недели | [`processy/dnevnoy-ritm.md`](processy/dnevnoy-ritm.md) |
 | Запустить конкретного сотрудника | `sotrudniki/<роль>/employee.md`, раздел «Запуск» |
@@ -40,7 +42,8 @@
 ## Что уже готово
 
 - Воронка, разбор потерь и скрипты — `strategiya/`.
-- Программа обучения: 5 модулей, экзамен, статус — `obuchenie/`.
+- 50 кейсов цветочных бизнесов и разбор 12 приёмов — `strategiya/keysy-50-cvetochnyh-biznesov.md`.
+- Программа обучения: 6 модулей, экзамен, зачёт по кейсам, статус — `obuchenie/`.
 - Выбор инструментов: 22 репозитория проверены по GitHub API — `instrumenty/`.
 - Единая таблица заявок и готовый CSV — `instrumenty/`.
 - Процессы: дневной ритм, недельный цикл, RACI, бриф, отчёт, метрики — `processy/`.

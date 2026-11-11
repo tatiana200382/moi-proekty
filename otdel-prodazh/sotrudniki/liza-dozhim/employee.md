@@ -55,8 +55,8 @@
 
 ## Обучение
 
-Модули 1, 2, 3, 5. Практика — план возврата 5 реальных потерь.
-Экзамен — [`../../obuchenie/ekzamen.md`](../../obuchenie/ekzamen.md).
+Модули 1, 2, 3, 5, 6. Практика — план возврата 5 реальных потерь.
+Экзамен — [`../../obuchenie/ekzamen.md`](../../obuchenie/ekzamen.md). Зачёт по 50 кейсам — [`../../obuchenie/zachet-50-keysov.md`](../../obuchenie/zachet-50-keysov.md).
 
 ## Запуск
 
