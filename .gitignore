@@ -34,3 +34,4 @@ __pycache__/
 
 # Вендорные python-пакеты (ставятся командой, не хранятся)
 marketing-otdel/tools/vendor/
+agent-marketolog/foto/bukety-arhiv/iz-telegram-2026-11-11/
