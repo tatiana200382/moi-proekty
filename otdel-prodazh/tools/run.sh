@@ -19,12 +19,26 @@ fi
 
 echo "=== $(date '+%Y-%m-%d %H:%M:%S') ===" >> "$LOG"
 
+# Пауза: если есть файл runtime/PAUSE — цикл ничего не делает.
+if [ -f "$ROOT/otdel-prodazh/runtime/PAUSE" ]; then
+  echo "пауза: найден runtime/PAUSE — пропускаю цикл" >> "$LOG"
+  exit 0
+fi
+
+# Ночной режим: с 23:00 до 08:00 не дёргаем браузер, если не задан FORCE=1.
+HOUR=$(date +%H)
+if [ "${FORCE:-0}" != "1" ] && { [ "$HOUR" -ge 23 ] || [ "$HOUR" -lt 8 ]; }; then
+  echo "ночной режим ($HOUR ч): сбор и рассылка пропущены" >> "$LOG"
+  exit 0
+fi
+
 # 1. Chrome с отладкой. Без него не читаются кабинеты.
 if ! curl -s --max-time 4 http://127.0.0.1:9224/json/version | grep -q Browser; then
   echo "Chrome CDP не отвечает — пробую запустить" >> "$LOG"
   CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
   if [ -x "$CHROME" ]; then
-    "$CHROME" --remote-debugging-port=9224 \
+    # headless: окно браузера не появляется на экране
+    "$CHROME" --headless=new --disable-gpu --remote-debugging-port=9224 \
       --user-data-dir="$ROOT/.chrome-profile" \
       --lang=ru --no-first-run >/dev/null 2>&1 &
     sleep 12
