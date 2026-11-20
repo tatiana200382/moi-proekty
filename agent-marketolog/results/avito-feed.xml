@@ -2,7 +2,7 @@
 <Ads formatVersion="3" target="Avito.ru">
   <Ad>
     <Id>buket-lizianthus</Id>
-    <Category>Цветы</Category>
+    <Category>Растения</Category>
     <GoodsType>Букеты</GoodsType>
     <Title>Букет лизиантусов (9 шт)</Title>
     <Description><![CDATA[Девять стеблей лизиантуса в упаковке. Собираем в день заказа, пришлём фото до отправки.]]></Description>
@@ -12,7 +12,7 @@
   </Ad>
   <Ad>
     <Id>buket-belye-rozy</Id>
-    <Category>Цветы</Category>
+    <Category>Растения</Category>
     <GoodsType>Букеты</GoodsType>
     <Title>Букет белых роз (80 см)</Title>
     <Description><![CDATA[Белые розы длиной 80 см. Проверьте букет при получении — если что-то не так, заменим на месте.]]></Description>
@@ -22,7 +22,7 @@
   </Ad>
   <Ad>
     <Id>buket-sumochka</Id>
-    <Category>Цветы</Category>
+    <Category>Растения</Category>
     <GoodsType>Букеты</GoodsType>
     <Title>Букет с розами в сумочке</Title>
     <Description><![CDATA[Небольшой букет в сумочке: розы, гвоздики, хризантемы. Магазин на Трибуца работает круглосуточно.]]></Description>
