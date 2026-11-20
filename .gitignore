@@ -35,3 +35,9 @@ __pycache__/
 # Вендорные python-пакеты (ставятся командой, не хранятся)
 marketing-otdel/tools/vendor/
 agent-marketolog/foto/bukety-arhiv/iz-telegram-2026-11-11/
+
+# Медиа и большие архивы: в git не кладём
+agent-marketolog/foto/media-gpt/
+arhiv/kontent-gpt-2026-11/
+obsidian/
+sekretar/

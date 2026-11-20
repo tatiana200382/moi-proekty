@@ -1,0 +1,17 @@
+{
+  "name": "Obsidian AI Memory Learning Kit",
+  "version": "2.2.0",
+  "updated": "2026-11-04",
+  "timezone": "Europe/Moscow",
+  "language": "ru",
+  "start_here": "LESSON-01.html",
+  "beginner_requires_terminal": false,
+  "student_pilot_completed": false,
+  "markdown_source": "LESSON-01.md",
+  "agent_walkthrough_performed": true,
+  "beginner_ui_end_to_end_passed": false,
+  "lessons": [
+    "LESSON-01.html",
+    "LESSON-02.html"
+  ]
+}

@@ -1,0 +1,8 @@
+credentials.md
+**/credentials.md
+.env
+.env.*
+secrets/
+.obsidian/workspace*.json
+.DS_Store
+*.tmp
