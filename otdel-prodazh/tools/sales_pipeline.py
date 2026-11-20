@@ -123,10 +123,18 @@ def source_leads() -> list:
 
 
 def lead_key(d: dict) -> str:
+    # ВК: id диалога меняется между запусками — ключ по клиенту и тексту обращения
+    if (d.get("source") or "") == "vk":
+        import re as _re
+        q = (d.get("question") or "").lower()
+        q = _re.sub(r"\d+\s*(минут|час|дн|недел)\w*\s*назад", "", q)
+        q = _re.sub(r"\s+", " ", q).strip()[:120]
+        raw = f"vk|{d.get('client')}|{q}"
+        return f"vk:{hashlib.sha1(raw.encode()).hexdigest()[:10]}"
     ext = str(d.get("external_id") or "").strip()
     if ext:
         return f"{d.get('source','?')}:{ext}"
-    raw = f"{d.get('source')}|{d.get('client')}|{d.get('created')}"
+    raw = f"{d.get('source')}|{d.get('client')}|{d.get('question')}|{d.get('contact')}"
     return f"{d.get('source','?')}:{hashlib.sha1(raw.encode()).hexdigest()[:10]}"
 
 
@@ -171,9 +179,6 @@ def is_test(d: dict) -> bool:
     if "demo" in client or "демо" in client or "демо" in question:
         return True
     if contact in {p.lower() for p in PLACEHOLDER_PHONES} or "000-00-00" in contact:
-        return True
-    # заявка без внешнего id и без ссылки из чат-источника — почти всегда демо
-    if d.get("source") in {"avito", "vk", "telegram"} and not str(d.get("external_id") or "").strip() and not str(d.get("link") or "").strip():
         return True
     return False
 
