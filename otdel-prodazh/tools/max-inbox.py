@@ -46,9 +46,13 @@ def save_state(state: dict) -> None:
     STATE.write_text(json.dumps(state, ensure_ascii=False, indent=2))
 
 
-def send(text: str) -> None:
+def send(text: str, to_user: str | None = None, to_chat: str | None = None) -> None:
+    """Ответ туда же, откуда пришла команда: в личку или в чат."""
     try:
-        max_client.send(our_chat(), text)
+        if to_user:
+            max_client.send_user(to_user, text)
+        else:
+            max_client.send(to_chat or our_chat(), text)
     except Exception as e:  # noqa: BLE001
         print(f"MAX отправка ошибка: {e}")
 
@@ -79,10 +83,10 @@ def clean(text: str) -> str:
     return re.sub(r"^(?:@\S+\s+)+", "", text.strip())
 
 
-def handle(text: str) -> bool:
+def handle(text: str, to_user: str | None = None, to_chat: str | None = None) -> bool:
     text = clean(text)
     if text.strip().lower().startswith("#инструкция"):
-        send(INSTRUCTION)
+        send(INSTRUCTION, to_user, to_chat)
         print("OK инструкция")
         return True
     m = PATTERN.match(text.strip())
@@ -97,10 +101,10 @@ def handle(text: str) -> bool:
     where = "ВКонтакте" if is_vk else "Авито"
     ok = proc.returncode == 0 and "ОТПРАВЛЕНО" in (proc.stdout or "")
     if ok:
-        send(f"✅ Отправлено в {where} · заявка {channel[:12]}…")
+        send(f"✅ Отправлено в {where} ✅ · заявка {channel[:12]}…", to_user, to_chat)
     else:
         reason = (proc.stdout or proc.stderr or "нет ответа скрипта").strip()[:200]
-        send(f"⚠️ Не отправлено в {where} · {channel[:12]}…\n{reason}")
+        send(f"⚠️ Не отправлено в {where} · {channel[:12]}…\n{reason}", to_user, to_chat)
     print(("OK " if ok else "FAIL ") + channel)
     return True
 
@@ -122,7 +126,9 @@ def once() -> int:
         if sender.get("is_bot"):
             continue
         print(f"входящее: {body[:120]!r}")
-        if handle(body):
+        sender_id = str((sender.get("user_id") or "")) or None
+        if handle(body, to_user=(sender_id if chat_id_value is None else None),
+                  to_chat=(str(chat_id_value) if chat_id_value is not None else None)):
             handled += 1
     if data.get("marker"):
         state["marker"] = data["marker"]

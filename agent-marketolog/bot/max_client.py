@@ -127,6 +127,14 @@ def send(chat_id_value, text):
     return call("POST", "/messages", {"text": text}, params={"chat_id": chat_id_value})
 
 
+def send_user(user_id, text):
+    """Личное сообщение пользователю (когда писал боту в личку)."""
+    text = text.strip()
+    if not text:
+        raise MaxError("пустой текст")
+    return call("POST", "/messages", {"text": text}, params={"user_id": user_id})
+
+
 def updates(marker=None, limit=100, timeout=5):
     params = {"limit": limit, "timeout": timeout}
     if marker:
