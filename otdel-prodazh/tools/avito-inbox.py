@@ -111,7 +111,7 @@ def main() -> int:
             f"Объявление: {c.get('item') or '—'}\n{status}\n"
             f"Переписка:\n{dialog}\n\n"
             f"Номер для ответа:\n"
-            f"**{cid}**\n\n"
+            f"[{cid}](https://www.avito.ru/profile/messenger/channel/{cid})\n\n"
             f"Скопируйте номер и напишите в личный чат с ботом:\n"
             f"номер, пробел, текст ответа."
         )
