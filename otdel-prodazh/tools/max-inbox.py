@@ -49,10 +49,11 @@ def save_state(state: dict) -> None:
 def send(text: str, to_user: str | None = None, to_chat: str | None = None) -> None:
     """Ответ туда же, откуда пришла команда: в личку или в чат."""
     try:
+        # подтверждения всегда в личку тому, кто отправил команду
         if to_user:
             max_client.send_user(to_user, text)
         else:
-            max_client.send(to_chat or our_chat(), text)
+            print("нет автора команды — подтверждение не отправлено")
     except Exception as e:  # noqa: BLE001
         print(f"MAX отправка ошибка: {e}")
 

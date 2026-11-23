@@ -73,7 +73,7 @@ def send_card(text: str) -> None:
     try:
         sys.path.insert(0, str(ROOT / "agent-marketolog" / "bot"))
         import max_client  # noqa: WPS433
-        max_client.send(max_client.chat_id(), text)
+        max_client.send(max_client.chat_id(), text, fmt="markdown")
         return
     except Exception as e:  # noqa: BLE001
         print(f"MAX недоступен ({e}), отправляю в Telegram")
@@ -107,10 +107,13 @@ def main() -> int:
         status = ("\n⚠️ Последнее сообщение — наше: похоже, уже ответили вручную в приложении."
                   if last_out else "")
         card = (
-            f"🟦 Заявка Авито · {c.get('name') or 'клиент'}\n"
+            f"🟦 **Заявка Авито** · {c.get('name') or 'клиент'}\n"
             f"Объявление: {c.get('item') or '—'}\n{status}\n"
             f"Переписка:\n{dialog}\n\n"
-            f"Ответить: «#{cid} ответ: ваш текст»"
+            f"Номер для ответа:\n"
+            f"**{cid}**\n\n"
+            f"Скопируйте номер и напишите в личный чат с ботом:\n"
+            f"номер, пробел, текст ответа."
         )
         send_card(card)
         state[cid] = last_in["t"]

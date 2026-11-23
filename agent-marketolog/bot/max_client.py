@@ -118,13 +118,16 @@ def me():
     return call("GET", "/me")
 
 
-def send(chat_id_value, text):
+def send(chat_id_value, text, fmt=None):
     text = text.strip()
     if not text:
         raise MaxError("пустой текст")
     if len(text) > 4000:
         raise MaxError(f"текст {len(text)} символов, максимум 4000")
-    return call("POST", "/messages", {"text": text}, params={"chat_id": chat_id_value})
+    payload = {"text": text}
+    if fmt:
+        payload["format"] = fmt
+    return call("POST", "/messages", payload, params={"chat_id": chat_id_value})
 
 
 def send_user(user_id, text):
