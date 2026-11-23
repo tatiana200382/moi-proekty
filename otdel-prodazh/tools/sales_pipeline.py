@@ -532,13 +532,13 @@ def auto() -> None:
     send_new()
     h = now().hour
     today = now().strftime("%Y-%m-%d")
-    # Догоняем, если Mac спал в 09:00 или 19:00: итог всё равно уйдёт.
-    if h >= 9 and f"{today}:morning" not in load_state().get("digests", {}):
-        send_digest("morning")
-    if h >= 19 and f"{today}:evening" not in load_state().get("digests", {}):
-        send_digest("evening")
-    if now().weekday() == 4 and h >= 16:
+    # Отчёт — раз в неделю, в понедельник после 09:00 (решение владельца 24.11.2026).
+    # Ежедневные сводки убраны: чат заявок должен оставаться чистым списком заявок.
+    if now().weekday() == 0 and h >= 9 and f"{today}:weekly" not in load_state().get("digests", {}):
         send_weekly()
+        state = load_state()
+        state.setdefault("digests", {})[f"{today}:weekly"] = now().isoformat(timespec="seconds")
+        save_state(state)
 
 
 def requalify() -> int:
