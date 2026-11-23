@@ -23,6 +23,7 @@ import max_client  # noqa: E402
 
 STATE = ROOT / "otdel-prodazh" / "runtime" / "max-inbox.json"
 REPLY = ROOT / "otdel-prodazh" / "tools" / "avito-reply.py"
+VK_REPLY = ROOT / "otdel-prodazh" / "tools" / "vk-reply-browser.py"
 PATTERN = re.compile(r"^#?([A-Za-z0-9_~\-]{6,})\s+(?:ответ|otvet)\s*:\s*(.+)$", re.I | re.S)
 
 
@@ -56,14 +57,17 @@ def handle(text: str) -> bool:
     if not m:
         return False
     channel, body = m.group(1), m.group(2).strip()
-    proc = subprocess.run([sys.executable, str(REPLY), channel, body],
-                          capture_output=True, text=True, timeout=120)
+    is_vk = channel.isdigit()
+    script = VK_REPLY if is_vk else REPLY
+    proc = subprocess.run([sys.executable, str(script), channel, body],
+                          capture_output=True, text=True, timeout=150)
+    where = "ВКонтакте" if is_vk else "Авито"
     ok = proc.returncode == 0 and "ОТПРАВЛЕНО" in (proc.stdout or "")
     if ok:
-        send(f"✅ Отправлено в Авито · заявка {channel[:12]}…")
+        send(f"✅ Отправлено в {where} · заявка {channel[:12]}…")
     else:
         reason = (proc.stdout or proc.stderr or "нет ответа скрипта").strip()[:200]
-        send(f"⚠️ Не отправлено · {channel[:12]}…\n{reason}")
+        send(f"⚠️ Не отправлено в {where} · {channel[:12]}…\n{reason}")
     print(("OK " if ok else "FAIL ") + channel)
     return True
 

@@ -29,17 +29,17 @@ def ws_url() -> str:
 
 
 SCRIPT = r"""
-const ws = new WebSocket(process.argv[2]);
+const ws = new WebSocket(process.argv[1]);
 let id = 0; const pend = new Map();
 ws.addEventListener('message', e => { const m = JSON.parse(e.data); if (m.id && pend.has(m.id)) { const q = pend.get(m.id); pend.delete(m.id); q(m.result); } });
 const send = (method, params={}) => new Promise(res => { const i = ++id; pend.set(i, res); ws.send(JSON.stringify({id:i, method, params})); });
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 await new Promise(r => ws.addEventListener('open', r, {once:true}));
-await send('Page.navigate', {url: process.argv[3]});
+await send('Page.navigate', {url: process.argv[2]});
 await sleep(9000);
 const focused = await send('Runtime.evaluate', {expression: `(()=>{const el=document.querySelector('[data-marker="message-input"], div[contenteditable="true"], textarea'); if(!el) return false; el.focus(); return true;})()`, returnByValue:true});
 if (!focused.result.value) { console.log('НЕТ ПОЛЯ ВВОДА'); process.exit(2); }
-await send('Input.insertText', {text: process.argv[4]});
+await send('Input.insertText', {text: process.argv[3]});
 await sleep(800);
 await send('Input.dispatchKeyEvent', {type:'keyDown', key:'Enter', code:'Enter', windowsVirtualKeyCode:13, nativeVirtualKeyCode:36});
 await send('Input.dispatchKeyEvent', {type:'keyUp', key:'Enter', code:'Enter', windowsVirtualKeyCode:13, nativeVirtualKeyCode:36});

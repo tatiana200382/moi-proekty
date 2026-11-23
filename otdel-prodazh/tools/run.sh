@@ -57,5 +57,6 @@ python3 otdel-prodazh/tools/sales_pipeline.py --auto >> "$LOG" 2>&1
 # чаты Авито → карточки в чат MAX «Заявки»
 python3 otdel-prodazh/tools/avito-inbox.py >> "$LOG" 2>&1
 # ответы сотрудников из MAX → в Авито
+python3 otdel-prodazh/tools/vk-inbox.py >> "$LOG" 2>&1
 python3 otdel-prodazh/tools/max-inbox.py >> "$LOG" 2>&1
 echo "pipeline exit=$?" >> "$LOG"
