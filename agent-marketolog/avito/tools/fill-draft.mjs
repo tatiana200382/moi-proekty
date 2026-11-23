@@ -34,13 +34,16 @@ photos = cnt.result.value;
 
 // 2) описание
 const desc = await send('Runtime.evaluate', { expression: `(()=>{
-  const d=document.querySelector('div[contenteditable="true"], textarea[name="description"]');
+  const d=[...document.querySelectorAll('[contenteditable="true"]')].sort((a,b)=>b.getBoundingClientRect().height-a.getBoundingClientRect().height)[0];
   if(!d) return 'нет поля описания';
   d.focus();
-  if(d.tagName==='TEXTAREA'){ const set=Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype,'value').set; set.call(d, ${JSON.stringify(cfg.desc)}); d.dispatchEvent(new Event('input',{bubbles:true})); }
-  else { const sel=window.getSelection(); const r=document.createRange(); r.selectNodeContents(d); sel.removeAllRanges(); sel.addRange(r); document.execCommand('delete',false,null); document.execCommand('insertText',false,${JSON.stringify(cfg.desc)}); }
-  return (d.value||d.innerText||'').length;
+  const r=document.createRange(); r.selectNodeContents(d);
+  const s=window.getSelection(); s.removeAllRanges(); s.addRange(r);
+  document.execCommand('insertText',false,${JSON.stringify(cfg.desc)});
+  return (d.innerText||'').length;
 })()`, returnByValue: true });
+console.log('описание:', desc.result.value);
+await sleep(2500);
 
 // 3) вид и цвет — кликами
 async function clickAt(pt){ await send('Input.dispatchMouseEvent',{type:'mouseMoved',x:pt.x,y:pt.y}); await send('Input.dispatchMouseEvent',{type:'mousePressed',x:pt.x,y:pt.y,button:'left',clickCount:1}); await send('Input.dispatchMouseEvent',{type:'mouseReleased',x:pt.x,y:pt.y,button:'left',clickCount:1}); }
