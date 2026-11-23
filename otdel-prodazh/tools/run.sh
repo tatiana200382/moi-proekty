@@ -25,10 +25,28 @@ if [ -f "$ROOT/otdel-prodazh/runtime/PAUSE" ]; then
   exit 0
 fi
 
-# Ночной режим: с 23:00 до 08:00 не дёргаем браузер, если не задан FORCE=1.
+# Ночной режим: с 23:00 до 08:00 не дёргаем кабинеты, НО чаты Авито и ВК
+# читаем всегда — цветочный магазин работает круглосуточно, ночные заявки терять нельзя.
 HOUR=$(date +%H)
+NIGHT=0
 if [ "${FORCE:-0}" != "1" ] && { [ "$HOUR" -ge 23 ] || [ "$HOUR" -lt 8 ]; }; then
-  echo "ночной режим ($HOUR ч): сбор и рассылка пропущены" >> "$LOG"
+  NIGHT=1
+  echo "ночной режим ($HOUR ч): только чаты Авито и ВК" >> "$LOG"
+fi
+
+if [ "$NIGHT" = "1" ]; then
+  if ! curl -s --max-time 4 http://127.0.0.1:9224/json/version | grep -q Browser; then
+    echo "Chrome CDP не отвечает ночью — пробую запустить" >> "$LOG"
+    CHROME="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+    if [ -x "$CHROME" ]; then
+      "$CHROME" --headless=new --disable-gpu --remote-debugging-port=9224 \
+        --user-data-dir="$ROOT/.chrome-profile" --lang=ru --no-first-run >/dev/null 2>&1 &
+      sleep 12
+    fi
+  fi
+  python3 otdel-prodazh/tools/avito-inbox.py >> "$LOG" 2>&1
+  python3 otdel-prodazh/tools/vk-inbox.py >> "$LOG" 2>&1
+  python3 otdel-prodazh/tools/max-inbox.py >> "$LOG" 2>&1
   exit 0
 fi
 
