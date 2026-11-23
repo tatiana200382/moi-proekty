@@ -25,7 +25,7 @@ import max_client  # noqa: E402
 STATE = ROOT / "otdel-prodazh" / "runtime" / "max-inbox.json"
 REPLY = ROOT / "otdel-prodazh" / "tools" / "avito-reply.py"
 VK_REPLY = ROOT / "otdel-prodazh" / "tools" / "vk-reply-browser.py"
-PATTERN = re.compile(r"^#?([A-Za-z0-9_~\-]{6,})\s+(?:ответ|otvet)\s*:\s*(.+)$", re.I | re.S)
+PATTERN = re.compile(r"^#?([A-Za-z0-9_~\-]{6,})\s*(?:ответ|otvet)?\s*[:\-]?\s*(.+)$", re.I | re.S)
 
 
 def our_chat() -> str:
@@ -114,6 +114,7 @@ def once() -> int:
             continue
         if sender.get("is_bot"):
             continue
+        print(f"входящее: {body[:120]!r}")
         if handle(body):
             handled += 1
     if data.get("marker"):
