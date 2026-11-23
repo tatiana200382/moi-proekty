@@ -74,7 +74,13 @@ u2i-… — Авито, просто цифры — ВКонтакте.
 5. Скидка 10% только на слово «МАМА» и только на предзаказ."""
 
 
+def clean(text: str) -> str:
+    """Убираем упоминания бота в начале: «@id… текст» → «текст»."""
+    return re.sub(r"^(?:@\S+\s+)+", "", text.strip())
+
+
 def handle(text: str) -> bool:
+    text = clean(text)
     if text.strip().lower().startswith("#инструкция"):
         send(INSTRUCTION)
         print("OK инструкция")
@@ -110,7 +116,8 @@ def once() -> int:
         chat = msg.get("chat") or {}
         body = (msg.get("body") or {}).get("text") or ""
         sender = (msg.get("sender") or {})
-        if str(chat.get("chat_id")) != our_chat():
+        chat_id_value = chat.get("chat_id")
+        if chat_id_value is not None and str(chat_id_value) != our_chat():
             continue
         if sender.get("is_bot"):
             continue
