@@ -203,6 +203,58 @@ def collect_yandex(verbose=True):
     return orders
 
 
+AVITO_SPAM = ("вакансия", "вакансии", "резюме", "ищу работу", "услуги", "реклама",
+               "продвижение", "раскрутка", "накрутка", "обложка", "оформление группы",
+               "сайт для", "готовых решений", "разработка", "под ключ", "оплата частями")
+
+
+def _avito_draft(chat: dict, price: str) -> str:
+    """Черновик ответа: подтвердить, один вопрос, следующий шаг."""
+    hello = "Здравствуйте!"
+    item = (chat.get("item") or "").strip()
+    if item:
+        return (f"{hello} Да, букет «{item}» есть — собираем в день заказа и присылаем фото до отправки. "
+                f"Уточните, пожалуйста, на какую дату и время нужен букет? Забронирую за вами.")
+    return (f"{hello} Да, букет есть — собираем в день заказа и присылаем фото до отправки. "
+            f"Уточните, пожалуйста, на какую дату и время нужен букет? Забронирую за вами.")
+
+
+def parse_avito(payload: dict) -> list:
+    cfg = CONFIG["avito"]
+    allowed = [t.lower() for t in cfg.get("allow_item_titles", []) if t]
+    now = now_msk()
+    orders, skipped = [], 0
+    for chat in payload.get("chats", []):
+        item = (chat.get("item") or "").strip()
+        last = (chat.get("last") or "").strip()
+        user = (chat.get("user") or "").strip()
+        href = (chat.get("href") or "").strip()
+        if not last:
+            continue
+        low = f"{item} {last}".lower()
+        if any(word in low for word in AVITO_SPAM):
+            skipped += 1
+            continue
+        if allowed and not any(t in item.lower() for t in allowed):
+            skipped += 1
+            continue
+        ext = href.rstrip("/").split("/")[-1] if href else ""
+        orders.append(Lead(
+            source="avito",
+            client=user or "Клиент Авито",
+            question=last[:300],
+            created=now.isoformat(timespec="seconds"),
+            external_id=ext,
+            link="https://www.avito.ru" + href if href.startswith("/") else href,
+            amount=(chat.get("price") or "").strip(),
+            answer=_avito_draft(chat, chat.get("price") or ""),
+        ))
+    if skipped:
+        print(f"Авито: пропущено чатов не по теме {skipped}")
+    orders.sort(key=lambda o: o.created, reverse=True)
+    return orders
+
+
 def collect_avito(verbose=True):
     cfg = CONFIG["avito"]
     if not cfg.get("enabled"):
@@ -215,13 +267,10 @@ def collect_avito(verbose=True):
             print("Авито: не задан список объявлений магазина (allow_item_titles) — пропускаю")
         return []
     payload = run_source("avito", cfg)
-    chats = [c for c in payload.get("chats", [])
-             if any(title in (c.get("item") or "").lower() for title in allowed)]
+    orders = parse_avito(payload)
     if verbose:
-        print(f"Авито: чатов {len(payload.get('chats', []))}, по объявлениям магазина {len(chats)}")
-    # В список чатов не входит история переписки, поэтому заявку пока не собираем.
-    # Включим разбор сообщений, когда на Авито появятся объявления магазина.
-    return []
+        print(f"Авито: чатов {len(payload.get('chats', []))}, заявок по объявлениям магазина {len(orders)}")
+    return orders
 
 
 def looks_like_spam(text):
