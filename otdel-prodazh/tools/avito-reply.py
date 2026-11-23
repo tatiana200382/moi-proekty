@@ -84,7 +84,7 @@ def main() -> int:
     out = proc.stdout.strip() or proc.stderr.strip()
     print(out)
     if "ОТПРАВЛЕНО" in out:
-        where = "ВКонтакте" if "ОТПРАВЛЕНО" and "vk" in "otdel-prodazh/tools/avito-reply.py" else "Авито"
+        where = "Авито"
         log_to_max(f"✅ Ответ отправлен · {where}\n{text}")
     return 0 if "ОТПРАВЛЕНО" in (proc.stdout or "") else 1
 
