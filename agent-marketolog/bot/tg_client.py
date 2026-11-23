@@ -26,7 +26,18 @@ def token() -> str:
     raise RuntimeError("нет TELEGRAM_BOT_TOKEN")
 
 
+GROUP = pathlib.Path.home() / ".claude" / "channels" / "telegram" / "group.json"
+
+
 def chat_id() -> str:
+    """Если создана группа «Заявки» — шлём туда, иначе в личный чат."""
+    if GROUP.exists():
+        try:
+            gid = json.loads(GROUP.read_text()).get("chat_id")
+            if gid:
+                return str(gid)
+        except Exception:
+            pass
     data = json.loads(ACCESS.read_text())
     allow = data.get("allowFrom") or []
     if not allow:
