@@ -103,9 +103,12 @@ def main() -> int:
         dialog = "\n".join(
             ("👤 " if m["dir"] == "in" else "💬 ") + m["t"] for m in ms[-6:]
         )
+        last_out = ms[-1]["dir"] == "out"
+        status = ("\n⚠️ Последнее сообщение — наше: похоже, уже ответили вручную в приложении."
+                  if last_out else "")
         card = (
             f"🟦 Заявка Авито · {c.get('name') or 'клиент'}\n"
-            f"Объявление: {c.get('item') or '—'}\n\n"
+            f"Объявление: {c.get('item') or '—'}\n{status}\n"
             f"Переписка:\n{dialog}\n\n"
             f"Ответить: «#{cid} ответ: ваш текст»"
         )
