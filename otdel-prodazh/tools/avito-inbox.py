@@ -68,6 +68,18 @@ def tg(text: str) -> None:
     subprocess.run([sys.executable, str(TG), text], check=True, capture_output=True, timeout=40)
 
 
+def send_card(text: str) -> None:
+    """Карточка идёт в чат MAX «Заявки»; если MAX недоступен — в Telegram."""
+    try:
+        sys.path.insert(0, str(ROOT / "agent-marketolog" / "bot"))
+        import max_client  # noqa: WPS433
+        max_client.send(max_client.chat_id(), text)
+        return
+    except Exception as e:  # noqa: BLE001
+        print(f"MAX недоступен ({e}), отправляю в Telegram")
+        tg(text)
+
+
 def main() -> int:
     if not CHATS.exists():
         print(f"нет списка чатов: {CHATS}")
@@ -97,7 +109,7 @@ def main() -> int:
             f"Переписка:\n{dialog}\n\n"
             f"Ответить: «#{cid} ответ: ваш текст»"
         )
-        tg(card)
+        send_card(card)
         state[cid] = last_in["t"]
         sent += 1
         print(f"карточка: {c.get('name')} ({cid[:10]}…)")
