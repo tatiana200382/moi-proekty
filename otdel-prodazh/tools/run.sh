@@ -54,4 +54,6 @@ echo "collect exit=$COLLECT" >> "$LOG"
 
 # 3. Продажи: новые заявки → готовые карточки → MAX → итоги по расписанию.
 python3 otdel-prodazh/tools/sales_pipeline.py --auto >> "$LOG" 2>&1
+# чаты Авито → карточки в Telegram (каждый цикл)
+python3 otdel-prodazh/tools/avito-inbox.py >> "$LOG" 2>&1
 echo "pipeline exit=$?" >> "$LOG"
