@@ -10,6 +10,7 @@
 from __future__ import annotations
 
 import json
+import os
 import pathlib
 import re
 import subprocess
@@ -59,8 +60,9 @@ def handle(text: str) -> bool:
     channel, body = m.group(1), m.group(2).strip()
     is_vk = channel.isdigit()
     script = VK_REPLY if is_vk else REPLY
+    env = dict(os.environ, NO_MAX_LOG="1")
     proc = subprocess.run([sys.executable, str(script), channel, body],
-                          capture_output=True, text=True, timeout=150)
+                          capture_output=True, text=True, timeout=150, env=env)
     where = "ВКонтакте" if is_vk else "Авито"
     ok = proc.returncode == 0 and "ОТПРАВЛЕНО" in (proc.stdout or "")
     if ok:

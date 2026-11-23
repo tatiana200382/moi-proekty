@@ -50,6 +50,21 @@ process.exit(0);
 """
 
 
+
+def log_to_max(text: str) -> None:
+    """Копия отправленного ответа в чат MAX «Заявки», чтобы команда видела."""
+    import os
+    if os.environ.get("NO_MAX_LOG"):
+        return
+    try:
+        import sys as _sys, pathlib as _pl
+        _sys.path.insert(0, str(_pl.Path(__file__).resolve().parents[2] / "agent-marketolog" / "bot"))
+        import max_client
+        max_client.send(max_client.chat_id(), text)
+    except Exception:
+        pass
+
+
 def main() -> int:
     args = sys.argv[1:]
     mode = "check" if "--check" in args else "send"

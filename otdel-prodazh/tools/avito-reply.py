@@ -49,6 +49,21 @@ process.exit(0);
 """
 
 
+
+def log_to_max(text: str) -> None:
+    """Копия отправленного ответа в чат MAX «Заявки», чтобы команда видела."""
+    import os
+    if os.environ.get("NO_MAX_LOG"):
+        return
+    try:
+        import sys as _sys, pathlib as _pl
+        _sys.path.insert(0, str(_pl.Path(__file__).resolve().parents[2] / "agent-marketolog" / "bot"))
+        import max_client
+        max_client.send(max_client.chat_id(), text)
+    except Exception:
+        pass
+
+
 def main() -> int:
     args = [a for a in sys.argv[1:]]
     dry = "--dry" in args
@@ -66,7 +81,11 @@ def main() -> int:
     node = "/Applications/DeepSeek Harness.app/Contents/Resources/runtime/primary-runtime/dependencies/node/bin/node"
     proc = subprocess.run([node, "--input-type=module", "-e", SCRIPT, ws, url, text],
                           capture_output=True, text=True, timeout=90)
-    print(proc.stdout.strip() or proc.stderr.strip())
+    out = proc.stdout.strip() or proc.stderr.strip()
+    print(out)
+    if "ОТПРАВЛЕНО" in out:
+        where = "ВКонтакте" if "ОТПРАВЛЕНО" and "vk" in "otdel-prodazh/tools/avito-reply.py" else "Авито"
+        log_to_max(f"✅ Ответ отправлен · {where}\n{text}")
     return 0 if "ОТПРАВЛЕНО" in (proc.stdout or "") else 1
 
 

@@ -71,11 +71,20 @@ def main() -> int:
     chats = collect()
     seen = json.loads(STATE.read_text()) if STATE.exists() else {}
     sent = 0
+    allow = ("букет", "доставка цветов", "авторские букеты")
+    uniq = set()
     for c in chats:
         cid = (c.get("href") or "").rstrip("/").split("/")[-1]
         last = (c.get("last") or "").strip()
+        item = (c.get("item") or "").lower()
         if not cid or not last:
             continue
+        if allow and not any(a in item for a in allow):
+            continue
+        key = (c.get("user") or "", item, last)
+        if key in uniq:
+            continue
+        uniq.add(key)
         if not show_all and seen.get(cid) == last:
             continue
         card = (
