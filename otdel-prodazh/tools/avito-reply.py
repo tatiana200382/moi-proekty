@@ -37,14 +37,16 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 await new Promise(r => ws.addEventListener('open', r, {once:true}));
 await send('Page.navigate', {url: process.argv[2]});
 await sleep(9000);
-const focused = await send('Runtime.evaluate', {expression: `(()=>{const el=document.querySelector('[data-marker="reply/input"]'); if(!el) return false; el.focus(); const r=el.getBoundingClientRect(); window.__cx=Math.round(r.x+r.width/2); window.__cy=Math.round(r.y+r.height/2); return true;})()`, returnByValue:true});
+const focused = await send('Runtime.evaluate', {expression: `(()=>{const el=document.querySelector('[data-marker="reply/input"]'); if(!el) return false; el.focus(); const set=Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype,'value').set; set.call(el, process_text); el.dispatchEvent(new Event('input',{bubbles:true})); return true;})()`.replace('process_text', JSON.stringify(process.argv[3])), returnByValue:true});
 if (!focused.result.value) { console.log('НЕТ ПОЛЯ ВВОДА'); process.exit(2); }
-await send('Input.insertText', {text: process.argv[3]});
-await sleep(900);
-const clicked = await send('Runtime.evaluate', {expression: `(()=>{const b=document.querySelector('[data-marker="reply/send"]'); if(!b) return 'нет кнопки'; b.click(); return 'нажал';})()`, returnByValue:true});
-await sleep(2500);
-const after = await send('Runtime.evaluate', {expression: `(()=>{const ms=[...document.querySelectorAll('[data-marker="message"]')]; const last=ms[ms.length-1]; return last?last.innerText.replace(/\\s+/g,' ').slice(0,80):'нет сообщений';})()`, returnByValue:true});
-console.log('ОТПРАВЛЕНО ' + JSON.stringify({button: clicked.result.value, last: after.result.value}));
+await sleep(700);
+for (const type of ['keyDown','char','keyUp']) {
+  await send('Input.dispatchKeyEvent', {type, key:'Enter', code:'Enter', windowsVirtualKeyCode:13, nativeVirtualKeyCode:36, text: type==='char' ? '\r' : undefined});
+  await sleep(120);
+}
+await sleep(3000);
+const after = await send('Runtime.evaluate', {expression: `(()=>{const ms=[...document.querySelectorAll('[data-marker="message"]')]; const last=ms[ms.length-1]; return last?last.innerText.replace(/\s+/g,' ').slice(0,90):'нет сообщений';})()`, returnByValue:true});
+console.log('ОТПРАВЛЕНО ' + JSON.stringify({last: after.result.value}));
 process.exit(0);
 """
 
