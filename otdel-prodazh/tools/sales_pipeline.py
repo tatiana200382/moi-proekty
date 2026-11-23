@@ -344,13 +344,36 @@ def max_send(text: str) -> str:
     return (result.stdout or "").strip()[:300]
 
 
+TG_CLIENT = os.path.join(ROOT, "agent-marketolog", "bot", "tg_client.py")
+
+
+def tg_send(text: str) -> None:
+    """Отправка в Telegram владельцу (бот Котика)."""
+    import subprocess
+    subprocess.run([sys.executable, TG_CLIENT, text], check=True,
+                   capture_output=True, timeout=30)
+
+
 def send_text_safe(text: str, tag: str) -> bool:
+    sent = False
     try:
         max_send(text)
         log(f"MAX отправлено: {tag}")
-        return True
-    except Exception as e:  # noqa: BLE001 — сеть/токен/чат, причина в лог
+        sent = True
+    except Exception as e:  # noqa: BLE001
         log(f"MAX ОШИБКА {tag}: {e}")
+    try:
+        tg_send(text)
+        log(f"Telegram отправлено: {tag}")
+        sent = True
+    except Exception as e:  # noqa: BLE001
+        log(f"Telegram ОШИБКА {tag}: {e}")
+    if sent:
+        return True
+    try:
+        max_send(text)
+    except Exception as e:  # noqa: BLE001
+        log(f"ОТПРАВКА ОШИБКА {tag}: {e}")
         os.makedirs(OUTBOX, mode=0o700, exist_ok=True)
         path = os.path.join(OUTBOX, f"{now().strftime('%Y%m%dT%H%M%S')}-{tag}.txt")
         with open(path, "w", encoding="utf-8") as f:

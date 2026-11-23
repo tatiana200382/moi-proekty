@@ -7,11 +7,15 @@
     "phone": "8 905 218-88-57"
   },
   "avito": {
-    "enabled": false,
+    "enabled": true,
     "url": "https://www.avito.ru/profile/messenger",
     "wait_for": "[data-marker=\"channels/channelLink\"]",
-    "allow_item_titles": [],
-    "note": "Включать, когда на Авито появятся объявления магазина. Сейчас на аккаунте только вакансии, их чаты — не заявки."
+    "allow_item_titles": [
+      "Букет на День матери 29.11",
+      "Авторские букеты из роз и хризантем",
+      "Доставка цветов и букетов"
+    ],
+    "note": "Включено 23.11.2026: товарные объявления опубликованы, чаты Авито — это заявки. Вакансии фильтруются по allow_item_titles."
   },
   "vk": {
     "enabled": true,
