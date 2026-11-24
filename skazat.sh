@@ -18,9 +18,11 @@ fi
 
 # 1) Silero через сервер.
 if ready; then
-  if curl -s -m 60 -G --data-urlencode "text=$TEXT" --data-urlencode "speaker=baya" "http://127.0.0.1:$PORT/say" -o "$OUT" && [ -s "$OUT" ]; then
-    afplay -v 2.0 "$OUT"; rm -f "$OUT"; exit 0
+  if curl -s -m 60 -G --data-urlencode "text=$TEXT" --data-urlencode "speaker=baya" "http://127.0.0.1:$PORT/say" -o "$OUT" && [ -s "$OUT" ] \
+     && [ "$(head -c 4 "$OUT" 2>/dev/null)" = "RIFF" ]; then
+    afplay -v 2.0 "$OUT" && rm -f "$OUT" && exit 0
   fi
+  rm -f "$OUT"
 fi
 
 # 2) Piper.
