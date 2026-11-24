@@ -73,7 +73,7 @@ def clean(text: str) -> str:
     return re.sub(r"^(?:@\S+\s+)+", "", text.strip())
 
 
-def handle(text: str, to_user: str | None = None, to_chat: str | None = None) -> bool:
+def handle(text: str, to_user: str | None = None, to_chat: str | None = None, who: str = "сотрудник") -> bool:
     text = clean(text)
     if text.strip().lower().startswith("#инструкция"):
         send(INSTRUCTION, to_user, to_chat)
@@ -91,7 +91,12 @@ def handle(text: str, to_user: str | None = None, to_chat: str | None = None) ->
     where = "ВКонтакте" if is_vk else "Авито"
     ok = proc.returncode == 0 and "ОТПРАВЛЕНО" in (proc.stdout or "")
     if ok:
-        send(f"✅ Отправлено в {where} ✅ · заявка {channel[:12]}…", to_user, to_chat)
+        send(f"✅ Отправлено в {where} ✅ · заявка {channel[:12]}…\n{body[:200]}", to_user, to_chat)
+        # копия в общий чат, чтобы команда видела, кто ответил
+        try:
+            max_client.send(our_chat(), f"✅ {who} · ответ в {where}\n{body[:220]}")
+        except Exception as e:  # noqa: BLE001
+            print("не удалось уведомить общий чат:", e)
     else:
         reason = (proc.stdout or proc.stderr or "нет ответа скрипта").strip()[:200]
         send(f"⚠️ Не отправлено в {where} · {channel[:12]}…\n{reason}", to_user, to_chat)
@@ -117,8 +122,10 @@ def once() -> int:
             continue
         print(f"входящее: {body[:120]!r}")
         sender_id = str((sender.get("user_id") or "")) or None
+        sender_name = (sender.get("first_name") or sender.get("name") or "сотрудник")
         if handle(body, to_user=(sender_id if chat_id_value is None else None),
-                  to_chat=(str(chat_id_value) if chat_id_value is not None else None)):
+                  to_chat=(str(chat_id_value) if chat_id_value is not None else None),
+                  who=sender_name):
             handled += 1
     if data.get("marker"):
         state["marker"] = data["marker"]
