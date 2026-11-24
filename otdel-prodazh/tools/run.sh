@@ -44,7 +44,10 @@ if [ "$NIGHT" = "1" ]; then
       sleep 12
     fi
   fi
-  python3 otdel-prodazh/tools/avito-inbox.py >> "$LOG" 2>&1
+  if [ "$AVITO_OK" = "1" ]; then
+    python3 otdel-prodazh/tools/avito-inbox.py >> "$LOG" 2>&1
+    bash otdel-prodazh/tools/avito-guard.sh done ok >> "$LOG" 2>&1
+  fi
   python3 otdel-prodazh/tools/vk-inbox.py >> "$LOG" 2>&1
   python3 otdel-prodazh/tools/max-inbox.py >> "$LOG" 2>&1
   exit 0
@@ -70,10 +73,24 @@ python3 agent-marketolog/bot/collect.py all >> "$LOG" 2>&1
 COLLECT=$?
 echo "collect exit=$COLLECT" >> "$LOG"
 
+# Сторож человекоподобного режима: слишком частые заходы в Авито = 429 и «проверка IP».
+AVITO_OK=1
+if ! bash otdel-prodazh/tools/avito-guard.sh check >> "$LOG" 2>&1; then
+  AVITO_OK=0
+fi
 # 3. Продажи: новые заявки → готовые карточки → MAX → итоги по расписанию.
 python3 otdel-prodazh/tools/sales_pipeline.py --auto >> "$LOG" 2>&1
 # чаты Авито → карточки в чат MAX «Заявки»
-python3 otdel-prodazh/tools/avito-inbox.py >> "$LOG" 2>&1
+if [ "$AVITO_OK" = "1" ]; then
+  OUT=$(python3 otdel-prodazh/tools/avito-inbox.py 2>&1); echo "$OUT" >> "$LOG"
+  if echo "$OUT" | grep -qi "429\|проверку IP\|Too Many Requests"; then
+    bash otdel-prodazh/tools/avito-guard.sh done block >> "$LOG" 2>&1
+  else
+    bash otdel-prodazh/tools/avito-guard.sh done ok >> "$LOG" 2>&1
+  fi
+else
+  echo "Авито: пропуск по расписанию сторожа" >> "$LOG"
+fi
 # ответы сотрудников из MAX → в Авито
 python3 otdel-prodazh/tools/vk-inbox.py >> "$LOG" 2>&1
 python3 otdel-prodazh/tools/max-inbox.py >> "$LOG" 2>&1
