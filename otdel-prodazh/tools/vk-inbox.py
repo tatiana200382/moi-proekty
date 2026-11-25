@@ -70,12 +70,12 @@ def split_sides(text: str) -> tuple[str, str]:
     return theirs, ours
 
 
-def send_max(text: str) -> None:
+def send_max(text: str, attachments=None) -> None:
     if DRY:
         print("[dry] карточка:\n" + text + "\n---")
         return
     import max_client
-    max_client.send(max_client.chat_id(), text)
+    max_client.send(max_client.chat_id(), text, fmt="html", attachments=attachments)
 
 
 def main() -> int:
@@ -119,7 +119,7 @@ def main() -> int:
                 pass
         if our_msg:
             lines.append(f"Наш ответ: {our_msg[:220]}")
-        lines += ["", f"Ответить: {peer} ваш текст"]
+        lines += ["", f"<code>{peer}</code>"]
         card = "\n".join(lines)
         send_max(card)
         state[peer] = txt

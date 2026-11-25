@@ -118,7 +118,7 @@ def me():
     return call("GET", "/me")
 
 
-def send(chat_id_value, text, fmt=None):
+def send(chat_id_value, text, fmt=None, attachments=None):
     text = text.strip()
     if not text:
         raise MaxError("пустой текст")
@@ -127,6 +127,8 @@ def send(chat_id_value, text, fmt=None):
     payload = {"text": text}
     if fmt:
         payload["format"] = fmt
+    if attachments:
+        payload["attachments"] = attachments
     return call("POST", "/messages", payload, params={"chat_id": chat_id_value})
 
 
