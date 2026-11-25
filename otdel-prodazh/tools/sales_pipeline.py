@@ -28,6 +28,7 @@ import csv
 import hashlib
 import json
 import os
+import pathlib
 import subprocess
 import sys
 from datetime import datetime, timedelta, timezone
@@ -236,23 +237,18 @@ def render_card(entry: dict) -> str:
     q = entry["readiness"]
     title = "КАРТОЧКА ЗАЯВКИ · готова" if q == "A" else "КАРТОЧКА ЗАЯВКИ · уточнить"
     src = SOURCE_NAMES.get(entry["source"], entry["source"])
-    lines = [f"{ICONS.get(q, '⚪')} {title} · {src}"]
-    if entry.get("external_id"):
-        lines.append(f"№ {entry['external_id']} · {fmt_dt(entry['created'])}")
-    else:
-        lines.append(f"Время: {fmt_dt(entry['created'])}")
+    lines = [f"{ICONS.get(q, '⚪')} {fmt_dt(entry['created'])} · {src}"]
     lines.append(f"Клиент: {entry['client'] or '—'}")
     if entry.get("contact"):
         lines.append(f"Телефон: {entry['contact']}")
     if entry.get("email"):
         lines.append(f"Почта: {entry['email']}")
-    if entry.get("photo"):
-        lines.append(f"Фото: {entry['photo']}")
+
     if entry.get("items"):
         lines.append("Что нужно:")
         lines.extend(f"• {item}" for item in entry["items"][:5])
     elif entry.get("question"):
-        lines.append(f"Запрос: {entry['question']}")
+        lines.append(f"От клиента: {entry['question']}")
     if entry.get("amount"):
         lines.append(f"Сумма: {entry['amount']}")
     if entry.get("comment"):
@@ -263,10 +259,11 @@ def render_card(entry: dict) -> str:
     lines.append(f"Дедлайн: {fmt_dt(entry['deadline'])}")
     if entry.get("draft"):
         draft = entry["draft"].strip().replace("\n", " ")
-        lines.append(f"Черновик ответа: {draft[:350]}")
+        lines.append(f"Наш ответ: {draft[:350]}")
     if entry.get("link"):
         lines.append(f"Источник: {entry['link']}")
-    lines.append(f"ID: {entry['id']}")
+    lines.append("")
+    lines.append(f"<code>{entry.get('external_id') or entry['id']}</code>")
     return "\n".join(lines)[:3800]
 
 
@@ -337,15 +334,15 @@ def max_chat() -> str:
     raise RuntimeError("нет chat_id MAX")
 
 
-def max_send(text: str) -> str:
+def max_send(text: str, photo: str = "") -> str:
     chat = max_chat()
-    result = subprocess.run(
-        [sys.executable, MAX_CLIENT, "send", chat, text],
-        capture_output=True, text=True, timeout=40,
-    )
-    if result.returncode != 0:
-        raise RuntimeError((result.stderr or result.stdout or "MAX не ответил").strip()[:300])
-    return (result.stdout or "").strip()[:300]
+    bot_dir = str(pathlib.Path(__file__).resolve().parents[2] / "agent-marketolog" / "bot")
+    if bot_dir not in sys.path:
+        sys.path.insert(0, bot_dir)
+    import max_client  # noqa: E402
+    attachments = [{"type": "image", "payload": {"url": photo}}] if photo else None
+    res = max_client.send(chat, text, fmt="html", attachments=attachments)
+    return str(res)[:300]
 
 
 TG_CLIENT = os.path.join(ROOT, "agent-marketolog", "bot", "tg_client.py")
