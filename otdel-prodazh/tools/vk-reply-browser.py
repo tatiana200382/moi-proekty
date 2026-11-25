@@ -25,7 +25,14 @@ def ws_url() -> str:
         tabs = json.load(r)
     page = next((t for t in tabs if t.get("type") == "page" and "vk" in (t.get("url") or "")), None)
     if not page:
-        raise SystemExit("нет вкладки ВК в управляемом Chrome")
+        # открываем вкладку сами
+        import urllib.request as _ur
+        req = _ur.Request(f"http://127.0.0.1:{PORT}/json/new?https://vk.com/gim188108705", method="PUT")
+        try:
+            new = json.loads(OPENER.open(req, timeout=15).read())
+            return new["webSocketDebuggerUrl"]
+        except Exception as e:
+            raise SystemExit(f"нет вкладки ВК и не удалось открыть: {e}")
     return page["webSocketDebuggerUrl"]
 
 
