@@ -38,7 +38,7 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 await new Promise(r=>ws.addEventListener('open',r,{once:true}));
 await send('Page.navigate',{url:process.argv[2]});
 await sleep(9000);
-const found=await send('Runtime.evaluate',{expression:`(()=>{const el=document.querySelector('.ComposerInput__input, [contenteditable="true"]'); if(!el) return false; el.focus(); return true;})()`,returnByValue:true});
+const found=await send('Runtime.evaluate',{expression:`(()=>{const el=document.querySelector('.ComposerInput__input, [contenteditable="true"]'); if(!el) return false; el.focus(); document.execCommand('selectAll'); document.execCommand('delete'); return true;})()`,returnByValue:true});
 if(!found.result.value){ console.log('НЕТ ПОЛЯ ВВОДА'); process.exit(2); }
 if(process.argv[4]==='check'){ console.log('ПОЛЕ НАЙДЕНО'); process.exit(0); }
 await send('Input.insertText',{text:process.argv[3]});
@@ -46,8 +46,10 @@ await sleep(700);
 await send('Input.dispatchKeyEvent',{type:'keyDown',key:'Enter',code:'Enter',windowsVirtualKeyCode:13,nativeVirtualKeyCode:36});
 await send('Input.dispatchKeyEvent',{type:'keyUp',key:'Enter',code:'Enter',windowsVirtualKeyCode:13,nativeVirtualKeyCode:36});
 await sleep(2500);
-const left=await send('Runtime.evaluate',{expression:`(()=>{const el=document.querySelector('.ComposerInput__input'); return el?el.innerText.slice(0,60):'ок';})()`,returnByValue:true});
-console.log('ОТПРАВЛЕНО', JSON.stringify(left.result.value));
+const needle = JSON.stringify((process.argv[3] || '').slice(0, 30));
+const probe = `(() => { const t = ${needle}; const nodes = [...document.querySelectorAll('.ConvoMessage, [class*="ConvoMessage"]')]; const hit = nodes.some(n => (n.innerText || '').includes(t)); const box = document.querySelector('.ComposerInput__input'); return JSON.stringify({ hit, box: box ? (box.innerText || '').slice(0, 40) : '' }); })()`;
+const check = await send('Runtime.evaluate', { expression: probe, returnByValue: true });
+console.log('РЕЗУЛЬТАТ', JSON.stringify(check || {}));
 process.exit(0);
 """
 
