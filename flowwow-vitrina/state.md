@@ -33,6 +33,10 @@
 
 Агент заходит сам: `node tools/flowwow-auth.mjs open`. Куки вне проекта: `~/.config/flowwow/cookies.json` (600). Инструкция — [kabinet-dostup.md](kabinet-dostup.md).
 
+## Сеть
+
+Flowwow ходит напрямую через российский IP: домен добавлен в исключения системного прокси. Проверка и откат — [marshrut-rossiya.md](marshrut-rossiya.md).
+
 ## Следующий шаг
 
 1. Владелец показывает стоимость доставки в карточке и ставит остатки на 10–15 товаров.
