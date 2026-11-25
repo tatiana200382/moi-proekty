@@ -205,6 +205,10 @@ def qualify(d: dict) -> dict:
     if not contact and not order:
         return {"code": "C", "why": "нет контакта и нет заказа", "missing": missing,
                 "action": "проверить источник вручную"}
+    # Авито: переписка в чате — это и есть канал связи, телефон часто скрыт площадкой
+    if (d.get("source") or "") == "avito" and order:
+        return {"code": "B", "why": "заявка в чате Авито, телефон уточняется в переписке",
+                "missing": missing, "action": "ответить в чате и запросить дату, время и адрес"}
     if not contact:
         return {"code": "C", "why": "нет пригодного контакта (заглушка или неполный номер)",
                 "missing": missing, "action": "проверить диалог в источнике вручную"}
@@ -278,6 +282,9 @@ def sync() -> dict:
         q = qualify(d)
         old = bool(d.get("baseline")) or (d.get("status") == "старая")
         status = "archive" if old else ("new" if q["code"] in ("A", "B") else "skip")
+        # Авито: заявка в цветочном объявлении, даже без телефона — в работу
+        if (d.get("source") or "") == "avito" and q["code"] in ("A", "B") and status == "skip":
+            status = "new"
         entry = {
             "id": key,
             "source": d.get("source") or "?",
