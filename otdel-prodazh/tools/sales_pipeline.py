@@ -38,6 +38,7 @@ SALES_DIR = os.path.join(ROOT, "otdel-prodazh")
 SOURCE_DIR = os.path.join(ROOT, "agent-marketolog", "leads")
 RUNTIME = os.path.join(SALES_DIR, "runtime")
 STATE_FILE = os.path.join(RUNTIME, "state.json")
+OLD_LEAD_DAYS = int(os.environ.get("OLD_LEAD_DAYS", "3"))  # старше — не отправляем
 CSV_FILE = os.path.join(RUNTIME, "zayavki.csv")
 LOG_FILE = os.path.join(RUNTIME, "logs", "pipeline.log")
 OUTBOX = os.path.join(RUNTIME, "outbox")
@@ -385,8 +386,18 @@ def send_text_safe(text: str, tag: str) -> bool:
 def send_new(limit: int = 5) -> int:
     state = load_state()
     sent = 0
+    skipped_old = 0
+    cutoff = now() - timedelta(days=OLD_LEAD_DAYS)
     for entry in sorted(state["leads"].values(), key=lambda x: x.get("created", "")):
         if entry["status"] != "new" or entry["readiness"] not in {"A", "B"}:
+            continue
+        created = parse_dt(entry.get("created") or "")
+        if created and created < cutoff:
+            # историческая заявка: не отправляем, помечаем тихо
+            entry["status"] = "archived_old"
+            entry["sent_at"] = ""
+            entry["notes"] = (entry.get("notes") or "") + f" [старая, пропущена {iso(now())}]"
+            skipped_old += 1
             continue
         if sent >= limit:
             break
@@ -400,7 +411,7 @@ def send_new(limit: int = 5) -> int:
                 entry["status"] = "send_error"
     save_state(state)
     write_csv(state)
-    log(f"send: отправлено {sent}")
+    log(f"send: отправлено {sent}, старых пропущено {skipped_old}")
     return sent
 
 
