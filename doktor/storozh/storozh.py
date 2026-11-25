@@ -25,6 +25,7 @@ import subprocess
 import sys
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
 
@@ -44,6 +45,93 @@ def _run(cmd: list[str], timeout: int = 15) -> tuple[int, str]:
 
 def add(name: str, status: str, detail: str, fix: str = "") -> None:
     RESULTS.append({"check": name, "status": status, "detail": detail, "autofix": fix})
+
+
+# ------------------------------------------------------- тревоги в Telegram
+ENV_FILE = "/etc/doktor/env"
+STATE_FILE = "/var/lib/doktor/state.json"
+COOLDOWN_H = 6
+
+
+def load_env() -> dict:
+    env = {}
+    try:
+        with open(ENV_FILE) as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#") and "=" in line:
+                    k, v = line.split("=", 1)
+                    env[k.strip()] = v.strip()
+    except FileNotFoundError:
+        pass
+    return env
+
+
+def send_telegram(text: str) -> tuple[bool, str]:
+    env = load_env()
+    token, chat = env.get("TG_TOKEN"), env.get("TG_CHAT")
+    if not token or not chat:
+        return False, "нет TG_TOKEN/TG_CHAT в /etc/doktor/env"
+    data = urllib.parse.urlencode({"chat_id": chat, "text": text[:3900],
+                                   "disable_web_page_preview": "true"}).encode()
+    try:
+        with urllib.request.urlopen(f"https://api.telegram.org/bot{token}/sendMessage",
+                                    data=data, timeout=15) as r:
+            ok = b'"ok":true' in r.read()
+        return ok, "отправлено" if ok else "Telegram ответил ok=false"
+    except Exception as e:  # noqa: BLE001
+        return False, f"{type(e).__name__}: {str(e)[:120]}"
+
+
+def _read_state() -> dict:
+    try:
+        with open(STATE_FILE) as f:
+            return json.load(f)
+    except Exception:  # noqa: BLE001
+        return {}
+
+
+def _write_state(state: dict) -> None:
+    try:
+        os.makedirs(os.path.dirname(STATE_FILE), exist_ok=True)
+        with open(STATE_FILE, "w") as f:
+            json.dump(state, f, ensure_ascii=False)
+    except Exception:  # noqa: BLE001
+        pass
+
+
+def maybe_alert(counts: dict, quiet: bool = False) -> None:
+    fails = [r for r in RESULTS if r["status"] == FAIL]
+    state = _read_state()
+    now = time.time()
+    fingerprint = "|".join(sorted(r["check"] for r in fails))
+
+    if fails and not quiet:
+        last = float(state.get("last_sent", 0))
+        if fingerprint != state.get("fingerprint") or now - last > COOLDOWN_H * 3600:
+            lines = [f"🔴 Доктор: {len(fails)} поломк(и)"]
+            lines += [f"• {r['check']}: {r['detail']}" for r in fails]
+            if any(r["autofix"] for r in fails):
+                lines.append("Само лечение: " + "; ".join(r["autofix"] for r in fails if r["autofix"]))
+            lines.append("Подробно: журнал и отчёт в репозитории.")
+            ok, info = send_telegram("\n".join(lines))
+            if ok:
+                state.update(fingerprint=fingerprint, last_sent=now, status="fail")
+            else:
+                print(f"тревога не ушла: {info}", file=sys.stderr)
+    elif fails:
+        state.update(fingerprint=fingerprint, status="fail")
+    elif state.get("status") == "fail" and not quiet:
+        ok, info = send_telegram("🟢 Доктор: восстановлено, поломок нет.")
+        if ok:
+            state.update(status="ok", fingerprint="", last_sent=now)
+        else:
+            print(f"сообщение о восстановлении не ушло: {info}", file=sys.stderr)
+    else:
+        state.update(status="ok", fingerprint="")
+
+    _write_state(state)
+
 
 
 # ---------------------------------------------------------------- 1. диск
@@ -229,12 +317,20 @@ def main() -> int:
     ap.add_argument("--json", action="store_true")
     ap.add_argument("--repo", default="/root/moi-proekty")
     ap.add_argument("--local", action="store_true", help="запуск на Mac: часть проверок пропускается")
+    ap.add_argument("--no-alert", action="store_true", help="не отправлять тревоги")
+    ap.add_argument("--alert-test", action="store_true", help="отправить тестовую тревогу и выйти")
+    ap.add_argument("--units", default=os.environ.get("DOKTOR_UNITS", "ssh,dsh-web"))
     args = ap.parse_args()
+
+    if args.alert_test:
+        ok, info = send_telegram("🧪 Доктор: проверка связи. Если вы это видите — тревоги работают.")
+        print(("OK: " if ok else "FAIL: ") + info)
+        return 0 if ok else 1
 
     check_disk()
     check_memory()
     check_load()
-    check_units(["ssh", "dsh-web"])
+    check_units([u.strip() for u in args.units.split(",") if u.strip()])
 
     if not args.local:
         check_http("веб DSH (локально)", "http://127.0.0.1:49999/", alive=(200, 401, 403))
@@ -256,6 +352,7 @@ def main() -> int:
     check_not_yet()
 
     counts = {s: sum(1 for r in RESULTS if r["status"] == s) for s in (OK, WARN, FAIL, SKIP)}
+    maybe_alert(counts, quiet=args.no_alert or args.local)
     if args.json:
         print(json.dumps({"checks": RESULTS, "summary": counts}, ensure_ascii=False, indent=1))
     else:
