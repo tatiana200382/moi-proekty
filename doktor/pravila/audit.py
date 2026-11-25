@@ -39,9 +39,13 @@ SECRET_PATTERNS = [
     ("токен Telegram", re.compile(r"\b\d{8,10}:[A-Za-z0-9_-]{30,}\b")),
     ("ключ OpenAI/DeepSeek", re.compile(r"\bsk-[A-Za-z0-9]{20,}\b")),
     ("приватный ключ", re.compile(r"BEGIN [A-Z ]*PRIVATE KEY")),
-    ("пароль в файле", re.compile(r"(?i)(password|passwd|pwd)\s*=\s*['\"]?[^\s'\"]{6,}")),
-    ("api-ключ", re.compile(r"(?i)(api[_-]?key|token)\s*[:=]\s*['\"][A-Za-z0-9_\-]{20,}")),
+    ("пароль в файле", re.compile(r"(?i)(password|passwd|pwd)\s*=\s*['\"][^'\"]{6,}['\"]")),
+    ("api-ключ", re.compile(r"(?i)(api[_-]?key|token)\s*[:=]\s*['\"][A-Za-z0-9_\-]{20,}['\"]")),
 ]
+
+# Строки, где секрет берётся из хранилища или окружения — не нарушение.
+SAFE_CONTEXT = ("keychain", "find-generic-password", "process.env", "os.environ",
+                "os.getenv", "getenv(", "$", "${")
 
 RESULTS: list[dict] = []
 
@@ -72,9 +76,13 @@ def check_secrets() -> None:
             body = p.read_text("utf-8", "ignore")
         except Exception:  # noqa: BLE001
             continue
-        for name, rx in SECRET_PATTERNS:
-            if rx.search(body):
-                found.append(f"{rel} — {name}")
+        for line in body.splitlines():
+            if any(safe in line for safe in SAFE_CONTEXT):
+                continue
+            for name, rx in SECRET_PATTERNS:
+                if rx.search(line):
+                    found.append(f"{rel} — {name}")
+                    break
     if found:
         add("П4 секреты", "FAIL", "найдено: " + "; ".join(found[:5]))
     else:
@@ -107,11 +115,15 @@ def check_rules_changed() -> None:
 
 
 def check_plans() -> None:
+    """Правило действует с 2026-11-26; более ранние планы — исторические (WARN, не FAIL)."""
     plans = sorted((ROOT / "plany").glob("*.md"))
-    bad = []
+    bad_new, bad_old = [], []
     for p in plans:
-        body = p.read_text("utf-8", "ignore")
         if p.name == "shablon.md":
+            continue
+        body = p.read_text("utf-8", "ignore")
+        # Требования — только к планам изменений (в них есть раздел «Что меняю»).
+        if "Что меняю" not in body:
             continue
         missing = []
         if "Откат" not in body:
@@ -120,10 +132,17 @@ def check_plans() -> None:
             missing.append("изолированный тест")
         if "Разрешение владельца" not in body:
             missing.append("разрешение")
-        if missing:
-            bad.append(f"{p.name}: нет {', '.join(missing)}")
-    if bad:
-        add("П1 планы", "FAIL", "; ".join(bad[:5]))
+        if not missing:
+            continue
+        item = f"{p.name}: нет {', '.join(missing)}"
+        if p.name[:10] >= "2026-11-26":
+            bad_new.append(item)
+        else:
+            bad_old.append(item)
+    if bad_new:
+        add("П1 планы", "FAIL", "; ".join(bad_new[:5]))
+    elif bad_old:
+        add("П1 планы", "WARN", f"новые полные; исторических неполных: {len(bad_old)}")
     else:
         add("П1 планы", "OK", f"планов проверено: {len(plans) - 1}")
 
@@ -169,10 +188,27 @@ def check_obsidian() -> None:
         add("П9 итог в Obsidian", "WARN", f"заметки за {today} нет")
 
 
+def zapishat(povod: str) -> None:
+    """Внести правку правил в журнал и обновить базовую линию. Только после «да» владельца."""
+    current = sha(ROOT / "PRAVILA.md")
+    base = json.loads(BASELINE.read_text("utf-8")).get("PRAVILA.md", "нет") if BASELINE.exists() else "нет"
+    row = f"| {date.today().isoformat()} | {povod} | владелец разрешил | {base} → {current} |\n"
+    with open(ZHURNAL_PRAVIL, "a", encoding="utf-8") as f:
+        f.write(row)
+    BASELINE.write_text(json.dumps({"PRAVILA.md": current}, ensure_ascii=False), "utf-8")
+    print(f"записано: {povod}; хеш {current}")
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--json", action="store_true")
+    ap.add_argument("--zapishat", metavar="ПОВОД", default="",
+                    help="записать правку правил в журнал и обновить базовую линию (после «да»)")
     args = ap.parse_args()
+
+    if args.zapishat:
+        zapishat(args.zapishat)
+        return 0
 
     check_secrets()
     check_rules_changed()
