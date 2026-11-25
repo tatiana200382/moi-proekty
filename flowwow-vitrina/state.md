@@ -29,6 +29,10 @@
 
 [results/plan-25-29-noyabrya.md](results/plan-25-29-noyabrya.md) — 4 дня, экономика по 4 ценам, шаблон карточки.
 
+## Доступ без браузера
+
+API-токен создан и работает: `~/.config/flowwow/token` (600). Команды — [api-dostup.md](api-dostup.md). Ограничение: просмотры и покупки через API не отдаются.
+
 ## Доступ к кабинету
 
 Агент заходит сам: `node tools/flowwow-auth.mjs open`, плюс автообновление сессии каждые 6 часов (`tools/flowwow-keepalive.mjs`, LaunchAgent). Куки вне проекта: `~/.config/flowwow/cookies.json` (600). Инструкция — [kabinet-dostup.md](kabinet-dostup.md).
