@@ -31,7 +31,7 @@
 
 ## Доступ к кабинету
 
-Агент заходит сам: `node tools/flowwow-auth.mjs open`. Куки вне проекта: `~/.config/flowwow/cookies.json` (600). Инструкция — [kabinet-dostup.md](kabinet-dostup.md).
+Агент заходит сам: `node tools/flowwow-auth.mjs open`, плюс автообновление сессии каждые 6 часов (`tools/flowwow-keepalive.mjs`, LaunchAgent). Куки вне проекта: `~/.config/flowwow/cookies.json` (600). Инструкция — [kabinet-dostup.md](kabinet-dostup.md).
 
 ## Сеть
 
