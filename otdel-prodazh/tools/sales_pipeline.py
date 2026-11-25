@@ -355,10 +355,10 @@ def tg_send(text: str) -> None:
                    capture_output=True, timeout=30)
 
 
-def send_text_safe(text: str, tag: str) -> bool:
+def send_text_safe(text: str, tag: str, photo: str = "") -> bool:
     sent = False
     try:
-        max_send(text)
+        max_send(text, photo)
         log(f"MAX отправлено: {tag}")
         sent = True
     except Exception as e:  # noqa: BLE001
@@ -372,7 +372,7 @@ def send_text_safe(text: str, tag: str) -> bool:
     if sent:
         return True
     try:
-        max_send(text)
+        max_send(text, photo)
     except Exception as e:  # noqa: BLE001
         log(f"ОТПРАВКА ОШИБКА {tag}: {e}")
         os.makedirs(OUTBOX, mode=0o700, exist_ok=True)
@@ -401,7 +401,7 @@ def send_new(limit: int = 5) -> int:
             continue
         if sent >= limit:
             break
-        if send_text_safe(render_card(entry), entry["id"].replace(":", "-")):
+        if send_text_safe(render_card(entry), entry["id"].replace(":", "-"), entry.get("photo") or ""):
             entry["status"] = "sent"
             entry["sent_at"] = iso(now())
             sent += 1

@@ -179,6 +179,7 @@ def parse_yandex(payload):
             amount=amount,
             items=items,
             comment=comment,
+            photo=(row.get("photo") or ""),
         )
         order.answer = draft_answer(order)
         orders.append(order)

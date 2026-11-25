@@ -9,6 +9,7 @@
     rows: rows
       .map((row) => ({
         cells: [...row.querySelectorAll(".ya-business-ui-table__cell")].map((c) => c.innerText.trim()),
+        photo: (() => { const i = row.querySelector("img"); return i ? (i.currentSrc || i.src || "") : ""; })(),
       }))
       .filter((r) => r.cells.length >= 4),
   };
