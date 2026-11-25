@@ -1,0 +1,1 @@
+hysteria2://SilversongHy2026@2.31.104.44:443?sni=www.bing.com&insecure=1#Silversong-HY2
