@@ -67,6 +67,23 @@ def log_to_max(text: str) -> None:
         pass
 
 
+
+PREFIX_NOISE = ("черновик ответа:", "черновик:", "вы:", "ответ:")
+
+
+def sanitize_outgoing(text: str) -> str:
+    """Убирает служебные префиксы из текста, который уходит клиенту."""
+    t = (text or "").strip()
+    changed = True
+    while changed:
+        changed = False
+        low = t.lower()
+        for p in PREFIX_NOISE:
+            if low.startswith(p):
+                t = t[len(p):].strip()
+                changed = True
+    return t.strip()
+
 def main() -> int:
     args = sys.argv[1:]
     mode = "check" if "--check" in args else "send"
@@ -75,7 +92,7 @@ def main() -> int:
         print(__doc__)
         return 2
     peer = args[0]
-    text = args[1] if len(args) > 1 else ""
+    text = sanitize_outgoing(args[1] if len(args) > 1 else "")
     proc = subprocess.run([NODE, "--input-type=module", "-e", SCRIPT, ws_url(), BASE + peer, text, mode],
                           capture_output=True, text=True, timeout=90)
     out = (proc.stdout or proc.stderr).strip()

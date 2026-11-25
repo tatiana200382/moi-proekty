@@ -66,6 +66,23 @@ def log_to_max(text: str) -> None:
         pass
 
 
+
+PREFIX_NOISE = ("черновик ответа:", "черновик:", "вы:", "ответ:")
+
+
+def sanitize_outgoing(text: str) -> str:
+    """Убирает служебные префиксы из текста, который уходит клиенту."""
+    t = (text or "").strip()
+    changed = True
+    while changed:
+        changed = False
+        low = t.lower()
+        for p in PREFIX_NOISE:
+            if low.startswith(p):
+                t = t[len(p):].strip()
+                changed = True
+    return t.strip()
+
 def main() -> int:
     args = [a for a in sys.argv[1:]]
     dry = "--dry" in args
@@ -74,7 +91,7 @@ def main() -> int:
     if len(args) < 2:
         print(__doc__)
         return 2
-    channel, text = args[0], args[1]
+    channel, text = args[0], sanitize_outgoing(args[1])
     url = f"https://www.avito.ru/profile/messenger/channel/{channel}"
     if dry:
         print(f"[dry] отправил бы в {url}: {text[:80]}…")

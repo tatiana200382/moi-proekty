@@ -142,11 +142,7 @@ def draft_answer(order):
         titles.append(title)
     what = ", ".join(titles) if titles else "ваш заказ"
     total = f" на {order.amount}" if order.amount else ""
-    return (
-        f"{hello} Спасибо за заказ № {order.external_id}: {what}{total}. "
-        f"Подтвердите, пожалуйста, дату и время — вам удобнее забрать в магазине или привезти? "
-        f"Наш телефон: {CONFIG['yandex']['phone']}."
-    )
+    return f"{hello} Заказ № {order.external_id} принят. Подтвердите, пожалуйста, дату и время."
 
 
 def parse_yandex(payload):
@@ -211,12 +207,10 @@ AVITO_SPAM = ("вакансия", "вакансии", "резюме", "ищу р
 def _avito_draft(chat: dict, price: str) -> str:
     """Черновик ответа: подтвердить, один вопрос, следующий шаг."""
     hello = "Здравствуйте!"
-    item = (chat.get("item") or "").strip()
+    item = (chat.get("item") or "").replace("«", "").replace("»", "").strip()
     if item:
-        return (f"{hello} Да, букет «{item}» есть — собираем в день заказа и присылаем фото до отправки. "
-                f"Уточните, пожалуйста, на какую дату и время нужен букет? Забронирую за вами.")
-    return (f"{hello} Да, букет есть — собираем в день заказа и присылаем фото до отправки. "
-            f"Уточните, пожалуйста, на какую дату и время нужен букет? Забронирую за вами.")
+        return f"{hello} Да, «{item}» есть. На какую дату и время нужен?"
+    return f"{hello} Да, букет есть. На какую дату и время нужен?"
 
 
 def parse_avito(payload: dict) -> list:
@@ -225,7 +219,7 @@ def parse_avito(payload: dict) -> list:
     now = now_msk()
     orders, skipped = [], 0
     for chat in payload.get("chats", []):
-        item = (chat.get("item") or "").strip()
+        item = (chat.get("item") or "").replace("«", "").replace("»", "").strip()
         last = (chat.get("last") or "").strip()
         user = (chat.get("user") or "").strip()
         href = (chat.get("href") or "").strip()
@@ -283,10 +277,7 @@ def looks_like_spam(text):
 def draft_vk(order):
     first = order.client.split()[0] if order.client else ""
     hello = f"Здравствуйте, {first}!" if first else "Здравствуйте!"
-    return (
-        f"{hello} Спасибо за сообщение — увидели. Подскажем по букету и подтвердим время. "
-        f"Silver Song Flowers."
-    )
+    return f"{hello} Да, букет есть. На какую дату и время нужен?"
 
 
 

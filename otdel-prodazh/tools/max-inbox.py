@@ -134,6 +134,23 @@ def once() -> int:
     return handled
 
 
+
+PREFIX_NOISE = ("черновик ответа:", "черновик:", "вы:", "ответ:")
+
+
+def sanitize_outgoing(text: str) -> str:
+    """Убирает служебные префиксы из текста, который уходит клиенту."""
+    t = (text or "").strip()
+    changed = True
+    while changed:
+        changed = False
+        low = t.lower()
+        for p in PREFIX_NOISE:
+            if low.startswith(p):
+                t = t[len(p):].strip()
+                changed = True
+    return t.strip()
+
 def main() -> int:
     if "--watch" in sys.argv:
         while True:
