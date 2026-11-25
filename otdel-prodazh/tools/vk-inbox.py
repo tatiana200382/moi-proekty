@@ -53,6 +53,23 @@ process.exit(0);
 DRY = "--dry" in sys.argv
 
 
+
+def split_sides(text: str) -> tuple[str, str]:
+    """Делит текст диалога на сообщение клиента и наш последний ответ."""
+    import re as _re
+    t = _re.sub(r"\s*·?\s*(?:\d+|один|одна|два|две|три|четыре|пять|шесть|семь|восемь|девять|десять)"
+                r"\s*(?:минут\w*|час\w*|дн\w*|день|недел\w*)\s*назад\s*", " ", text, flags=_re.I)
+    t = _re.sub(r"\s+", " ", t).strip()
+    parts = t.split("Вы:")
+    theirs = parts[0].strip()
+    ours = parts[-1].strip() if len(parts) > 1 else ""
+    # убираем имя клиента в начале
+    words = theirs.split(" ", 2)
+    if len(words) >= 3:
+        theirs = words[2]
+    return theirs, ours
+
+
 def send_max(text: str) -> None:
     if DRY:
         print("[dry] карточка:\n" + text + "\n---")
@@ -86,12 +103,24 @@ def main() -> int:
         clean_txt = _re.sub(r"\s*·?\s*(?:\d+|один|одна|два|две|три|четыре|пять|шесть|семь|восемь|девять|десять)"
                             r"\s*(?:минут\w*|час\w*|дн\w*|день|недел\w*)\s*назад\s*", " ", txt, flags=_re.I)
         clean_txt = _re.sub(r"\s+", " ", clean_txt).strip()
-        card = (
-            f"🟪 {stamp} · Заявка ВКонтакте\n"
-            f"Клиент: {txt.split(' ')[0] if txt else '—'}\n"
-            f"Сообщение: {clean_txt[:250]}\n\n"
-            f"Ответить: «{peer} ваш текст»"
-        )
+        client_msg, our_msg = split_sides(txt)
+        name = txt.split(' ')[0] if txt else '—'
+        lines = [f"🟪 {stamp} · Заявка ВКонтакте", f"Клиент: {name}"]
+        if client_msg:
+            lines.append(f"От клиента: {client_msg[:220]}")
+        if not our_msg:
+            import json as _json, pathlib as _pl
+            log = _pl.Path(__file__).resolve().parents[1] / "runtime" / "vk-sent.json"
+            try:
+                sent_info = _json.loads(log.read_text()).get(str(peer), {})
+                if sent_info.get("text"):
+                    our_msg = sent_info["text"]
+            except Exception:
+                pass
+        if our_msg:
+            lines.append(f"Наш ответ: {our_msg[:220]}")
+        lines += ["", f"Ответить: {peer} ваш текст"]
+        card = "\n".join(lines)
         send_max(card)
         state[peer] = txt
         sent += 1

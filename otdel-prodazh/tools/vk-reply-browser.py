@@ -89,6 +89,20 @@ def sanitize_outgoing(text: str) -> str:
                 changed = True
     return t.strip()
 
+SENT_LOG = __import__("pathlib").Path(__file__).resolve().parents[1] / "runtime" / "vk-sent.json"
+
+
+def remember_sent(peer: str, text: str) -> None:
+    import json as _json, time as _time
+    try:
+        data = _json.loads(SENT_LOG.read_text()) if SENT_LOG.exists() else {}
+    except Exception:
+        data = {}
+    data[str(peer)] = {"text": text[:300], "ts": int(_time.time())}
+    SENT_LOG.parent.mkdir(parents=True, exist_ok=True)
+    SENT_LOG.write_text(_json.dumps(data, ensure_ascii=False, indent=1))
+
+
 def main() -> int:
     args = sys.argv[1:]
     mode = "check" if "--check" in args else "send"
@@ -104,7 +118,10 @@ def main() -> int:
     print(out)
     if mode == "check":
         return 0 if "ПОЛЕ НАЙДЕНО" in out else 1
-    return 0 if "ОТПРАВЛЕНО" in out else 1
+    if "ОТПРАВЛЕНО" in out:
+        remember_sent(peer, text)
+        return 0
+    return 1
 
 
 if __name__ == "__main__":
