@@ -50,6 +50,7 @@ if [ "$NIGHT" = "1" ]; then
   fi
   python3 otdel-prodazh/tools/vk-inbox.py >> "$LOG" 2>&1
   python3 otdel-prodazh/tools/max-inbox.py >> "$LOG" 2>&1
+python3 otdel-prodazh/tools/max-leads.py >> "$LOG" 2>&1
   exit 0
 fi
 
