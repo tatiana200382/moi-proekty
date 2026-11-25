@@ -252,7 +252,8 @@ def render_card(entry: dict) -> str:
     if entry.get("amount"):
         lines.append(f"Сумма: {entry['amount']}")
     if entry.get("comment"):
-        lines.append(f"Комментарий: {entry['comment']}")
+        label = "Магазин" if entry.get("source") == "yandex" else "Комментарий"
+        lines.append(f"{label}: {entry['comment']}")
     if entry.get("missing"):
         lines.append(f"Чего не хватает: {', '.join(entry['missing'])}")
     lines.append(f"Действие: {entry['action']}")

@@ -191,13 +191,25 @@ def collect_yandex(verbose=True):
     cfg = CONFIG["yandex"]
     if not cfg.get("enabled"):
         return []
-    payload = run_source("yandex", cfg)
-    if not payload.get("rows"):
-        raise RuntimeError("список заявок пуст — вероятно, сессия Яндекса истекла, проверьте вход")
-    orders = parse_yandex(payload)
-    if verbose:
-        print(f"Яндекс.Карты: в списке {len(payload.get('rows', []))} строк, разобрано заявок {len(orders)}")
-    return orders
+    companies = cfg.get("companies") or [{"name": "магазин", "url": cfg.get("url", "")}]
+    all_orders = []
+    for company in companies:
+        local = dict(cfg)
+        local["url"] = company.get("url") or cfg.get("url", "")
+        try:
+            payload = run_source("yandex", local)
+        except RuntimeError as exc:
+            if verbose:
+                print(f"Яндекс «{company.get('name')}»: ошибка {exc}")
+            continue
+        rows = payload.get("rows") or []
+        orders = parse_yandex(payload)
+        for order in orders:
+            order.comment = company.get("name") or ""
+        all_orders += orders
+        if verbose:
+            print(f"Яндекс «{company.get('name')}»: строк {len(rows)}, заявок {len(orders)}")
+    return all_orders
 
 
 AVITO_SPAM = ("вакансия", "вакансии", "резюме", "ищу работу", "услуги", "реклама",
