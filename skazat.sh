@@ -16,13 +16,33 @@ if ! ready; then
   for _ in $(seq 1 40); do sleep 0.5; ready && break; done
 fi
 
-# 1) Silero через сервер.
+# 1) Silero через сервер (длинный текст режем на куски — модель не берёт длинные).
 if ready; then
-  if curl -s -m 60 -G --data-urlencode "text=$TEXT" --data-urlencode "speaker=baya" "http://127.0.0.1:$PORT/say" -o "$OUT" && [ -s "$OUT" ] \
-     && [ "$(head -c 4 "$OUT" 2>/dev/null)" = "RIFF" ]; then
-    afplay -v 2.0 "$OUT" && rm -f "$OUT" && exit 0
-  fi
+  OK=1
+  while IFS= read -r CHUNK; do
+    [ -z "$CHUNK" ] && continue
+    if curl -s -m 90 -G --data-urlencode "text=$CHUNK" --data-urlencode "speaker=baya" "http://127.0.0.1:$PORT/say" -o "$OUT" \
+       && [ -s "$OUT" ] && [ "$(head -c 4 "$OUT" 2>/dev/null)" = "RIFF" ]; then
+      afplay -v 2.0 "$OUT" || OK=0
+    else
+      OK=0; break
+    fi
+  done < <("$HOME/.tts-venv/bin/python" - "$TEXT" <<'PYCH'
+import sys, re
+t = sys.argv[1]
+parts = re.split(r'(?<=[.!?…])\s+', t)
+buf = ""
+for p in parts:
+    if len(buf) + len(p) > 180 and buf:
+        print(buf); buf = p
+    else:
+        buf = (buf + " " + p).strip()
+if buf:
+    print(buf)
+PYCH
+)
   rm -f "$OUT"
+  [ "$OK" = "1" ] && exit 0
 fi
 
 # 2) Piper.
