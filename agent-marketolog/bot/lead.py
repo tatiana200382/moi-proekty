@@ -54,6 +54,7 @@ class Lead:
     amount: str = ""                # сумма заказа
     items: list = field(default_factory=list)
     comment: str = ""
+    photo: str = ""               # ссылка на фото товара с площадки
     notified: bool = False          # карточка ушла в MAX
     sent_at: str = ""               # когда карточка ушла в MAX
     max_mid: str = ""               # id сообщения в MAX
@@ -81,6 +82,8 @@ class Lead:
             lines.extend(f"• {item}" for item in self.items)
         elif self.question:
             lines.append(f"Вопрос: {self.question}")
+        if self.photo:
+            lines.append(f"Фото: {self.photo}")
         if self.amount:
             lines.append(f"Сумма: {self.amount}")
         if self.comment:

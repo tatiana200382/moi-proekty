@@ -128,7 +128,8 @@ def lead_key(d: dict) -> str:
     if (d.get("source") or "") == "vk":
         import re as _re
         q = (d.get("question") or "").lower()
-        q = _re.sub(r"\d+\s*(минут|час|дн|недел)\w*\s*назад", "", q)
+        q = _re.sub(r"(?:\d+|один|одна|два|две|три|четыре|пять|шесть|семь|восемь|девять|десять)\s*"
+                   r"(?:минут\w*|час\w*|дн\w*|день|недел\w*|месяц\w*)\s*назад", "", q)
         q = _re.sub(r"\s+", " ", q).strip()[:120]
         raw = f"vk|{d.get('client')}|{q}"
         return f"vk:{hashlib.sha1(raw.encode()).hexdigest()[:10]}"
@@ -245,6 +246,8 @@ def render_card(entry: dict) -> str:
         lines.append(f"Телефон: {entry['contact']}")
     if entry.get("email"):
         lines.append(f"Почта: {entry['email']}")
+    if entry.get("photo"):
+        lines.append(f"Фото: {entry['photo']}")
     if entry.get("items"):
         lines.append("Что нужно:")
         lines.extend(f"• {item}" for item in entry["items"][:5])

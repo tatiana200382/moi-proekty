@@ -13,6 +13,7 @@
       user: row ? text(row, "channels/user-title") : "",
       item: row ? text(row, "channels/item-title") : "",
       price: row ? text(row, "channels/item-price") : "",
+      photo: row && row.querySelector("img") ? (row.querySelector("img").getAttribute("src") || "") : "",
       last: row ? text(row, "channels/last-message") : "",
       row_text: row ? row.innerText.replace(/\n+/g, " | ").slice(0, 300) : "",
     };

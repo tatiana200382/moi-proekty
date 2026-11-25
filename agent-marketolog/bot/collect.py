@@ -248,6 +248,7 @@ def parse_avito(payload: dict) -> list:
             link="https://www.avito.ru" + href if href.startswith("/") else href,
             amount=(chat.get("price") or "").strip(),
             answer=_avito_draft(chat, chat.get("price") or ""),
+            photo=(chat.get("photo") or ""),
         ))
     if skipped:
         print(f"Авито: пропущено чатов не по теме {skipped}")
@@ -288,6 +289,25 @@ def draft_vk(order):
     )
 
 
+
+SKIP_LINE = re.compile(r"^(Вы:|Черновик:|Заказ|•••)")
+REL_TIME = re.compile(r"\b(?:\d+|один|одна|два|две|три|четыре|пять|шесть|семь|восемь|девять|десять)\s*"
+                      r"(?:минут\w*|час\w*|дн\w*|день|недел\w*|месяц\w*)\s*назад\b", re.I)
+
+
+def clean_client_text(lines: list[str]) -> str:
+    """Оставляет только сообщения клиента: без наших ответов и меток времени."""
+    out = []
+    for line in lines:
+        s = line.strip()
+        if not s or SKIP_LINE.match(s):
+            continue
+        s = REL_TIME.sub("", s).strip()
+        if s:
+            out.append(s)
+    return "\n".join(out).strip()
+
+
 def parse_vk(payload):
     now = now_msk()
     orders, skipped = [], 0
@@ -312,7 +332,7 @@ def parse_vk(payload):
             if line in ("Ссылка", "Файл", "Фотография"):
                 continue
             clean.append(line)
-        message = "\n".join(clean).strip()
+        message = clean_client_text(clean)
         if not message:
             continue
         if looks_like_spam(message):
