@@ -29,6 +29,10 @@
 
 [results/plan-25-29-noyabrya.md](results/plan-25-29-noyabrya.md) — 4 дня, экономика по 4 ценам, шаблон карточки.
 
+## Доступ к кабинету
+
+Агент заходит сам: `node tools/flowwow-auth.mjs open`. Куки вне проекта: `~/.config/flowwow/cookies.json` (600). Инструкция — [kabinet-dostup.md](kabinet-dostup.md).
+
 ## Следующий шаг
 
 1. Владелец показывает стоимость доставки в карточке и ставит остатки на 10–15 товаров.
