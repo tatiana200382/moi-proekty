@@ -466,6 +466,7 @@ def main() -> int:
     ap.add_argument("--local", action="store_true", help="запуск на Mac: часть проверок пропускается")
     ap.add_argument("--no-alert", action="store_true", help="не отправлять тревоги")
     ap.add_argument("--no-fix", action="store_true", help="не лечить, только проверять")
+    ap.add_argument("--fix", action="store_true", help="лечить по белому списку (так работает таймер)")
     ap.add_argument("--alert-test", action="store_true", help="отправить тестовую тревогу и выйти")
     ap.add_argument("--units", default=os.environ.get("DOKTOR_UNITS", "ssh,dsh-web"))
     args = ap.parse_args()
@@ -478,7 +479,7 @@ def main() -> int:
     counts = run_all(args)
     fixed: list[dict] = []
 
-    if counts[FAIL] and not args.no_fix and not args.local:
+    if counts[FAIL] and args.fix and not args.no_fix and not args.local:
         fixed = apply_fixes([r for r in RESULTS if r["status"] == FAIL])
         if any(f["ok"] for f in fixed):
             counts = run_all(args)  # проверяем результат лечения
