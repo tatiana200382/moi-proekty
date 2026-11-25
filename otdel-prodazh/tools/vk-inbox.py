@@ -27,9 +27,8 @@ JS = r"""
 
 def read_dialogs() -> list[dict]:
     import urllib.request
-
-OPENER = urllib.request.build_opener(urllib.request.ProxyHandler({}))
-    with OPENER.open(f"http://127.0.0.1:{PORT}/json/list", timeout=5) as r:
+    opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+    with opener.open(f"http://127.0.0.1:{PORT}/json/list", timeout=5) as r:
         tabs = json.load(r)
     page = next((t for t in tabs if t.get("type") == "page" and "vk" in (t.get("url") or "")), None)
     if not page:
@@ -51,7 +50,13 @@ process.exit(0);
     return json.loads(out.stdout or "[]")
 
 
+DRY = "--dry" in sys.argv
+
+
 def send_max(text: str) -> None:
+    if DRY:
+        print("[dry] карточка:\n" + text + "\n---")
+        return
     import max_client
     max_client.send(max_client.chat_id(), text)
 
@@ -67,18 +72,33 @@ def main() -> int:
             continue
         if not show_all and state.get(peer) == txt:
             continue
+        low = txt.lower()
+        if "вы:" in low.split("·")[0] or "черновик:" in low:
+            continue
+        SPAM = ("делаю сайт", "сделаю сайт", "веб-студи", "продвижен", "seo", "рекламн",
+                "настрою реклам", "приведу клиент", "фриланс", "разработка сайт")
+        if any(w in low for w in SPAM):
+            state[peer] = txt
+            continue
+        import re as _re
+        from datetime import datetime, timezone, timedelta
+        stamp = datetime.now(timezone(timedelta(hours=3))).strftime("%d.%m %H:%M")
+        clean_txt = _re.sub(r"\s*·?\s*(?:\d+|один|одна|два|две|три|четыре|пять|шесть|семь|восемь|девять|десять)"
+                            r"\s*(?:минут\w*|час\w*|дн\w*|день|недел\w*)\s*назад\s*", " ", txt, flags=_re.I)
+        clean_txt = _re.sub(r"\s+", " ", clean_txt).strip()
         card = (
-            f"🟪 Заявка ВКонтакте\n"
+            f"🟪 {stamp} · Заявка ВКонтакте\n"
             f"Клиент: {txt.split(' ')[0] if txt else '—'}\n"
-            f"Последнее сообщение: {txt[:250]}\n\n"
-            f"Ответить: «#{peer} ответ: ваш текст»"
+            f"Сообщение: {clean_txt[:250]}\n\n"
+            f"Ответить: «{peer} ваш текст»"
         )
         send_max(card)
         state[peer] = txt
         sent += 1
         print(f"карточка ВК: {peer}")
-    STATE.parent.mkdir(parents=True, exist_ok=True)
-    STATE.write_text(json.dumps(state, ensure_ascii=False, indent=2))
+    if not DRY:
+        STATE.parent.mkdir(parents=True, exist_ok=True)
+        STATE.write_text(json.dumps(state, ensure_ascii=False, indent=2))
     print(f"всего карточек: {sent}")
     return 0
 
