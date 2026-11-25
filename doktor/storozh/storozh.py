@@ -34,16 +34,17 @@ DOMAIN = "2-31-104-44.sslip.io"
 HTTPS_PORT = 8443
 
 ENV_FILE = "/etc/doktor/env"
-STATE_FILE = "/var/lib/doktor/state.json"
-ACTION_LOG = "/var/lib/doktor/actions.log"
+STATE_FILE = os.environ.get("DOKTOR_STATE", "/var/lib/doktor/state.json")
+ACTION_LOG = os.environ.get("DOKTOR_ACTIONS", "/var/lib/doktor/actions.log")
 PAUSE_FILE = "/etc/doktor/PAUSE"
 COOLDOWN_H = 6
 
 # Белый список лечения: только это чиним сами.
 ALLOWED_UNITS = {"dsh-web", "nginx"}
 ALLOWED_PREFIX = "doktor-"
-MAX_ACTIONS_PER_HOUR = 3
+MAX_ACTIONS_PER_HOUR = int(os.environ.get("DOKTOR_MAX_ACTIONS", "3"))
 DISK_FAIL_PCT = 92
+REAL_ACTIONS = {"restart", "journal_vacuum", "certbot_renew"}
 
 
 def reset() -> None:
@@ -156,13 +157,17 @@ def log_action(entry: dict) -> None:
 
 
 def actions_last_hour() -> int:
+    """Считаем только настоящие действия; пауза и отказы бюджет не тратят."""
     try:
         cutoff = time.time() - 3600
         n = 0
         with open(ACTION_LOG) as f:
             for line in f:
                 try:
-                    if datetime.fromisoformat(json.loads(line)["ts"]).timestamp() > cutoff:
+                    e = json.loads(line)
+                    if e.get("action") not in REAL_ACTIONS:
+                        continue
+                    if datetime.fromisoformat(e["ts"]).timestamp() > cutoff:
                         n += 1
                 except Exception:  # noqa: BLE001
                     continue
