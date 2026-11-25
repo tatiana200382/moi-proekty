@@ -54,10 +54,28 @@ async def handle(client_reader: asyncio.StreamReader, client_writer: asyncio.Str
     headers = [h for h in rest if h and not h.lower().startswith("proxy-authorization")]
     headers.append(f"Proxy-Authorization: Basic {AUTH}")
 
-    # Подключаемся к немецкому прокси и передаём запрос заново
-    up_reader, up_writer = await asyncio.open_connection(UPSTREAM_HOST, UPSTREAM_PORT)
+    # Подключаемся к немецкому прокси; если он недоступен — идём напрямую (страховка)
+    use_upstream = True
+    try:
+        up_reader, up_writer = await asyncio.open_connection(UPSTREAM_HOST, UPSTREAM_PORT)
+    except Exception:
+        use_upstream = False
+        host, _, port = target.partition(":")
+        try:
+            up_reader, up_writer = await asyncio.open_connection(host, int(port or 443))
+        except Exception:
+            client_writer.close()
+            return
+        if method.upper() == "CONNECT":
+            client_writer.write(b"HTTP/1.1 200 Connection Established\r\n\r\n")
+            await client_writer.drain()
+            await asyncio.gather(pipe(client_reader, up_writer), pipe(up_reader, client_writer))
+            return
 
-    if method.upper() == "CONNECT":
+    if not use_upstream:
+        req = f"{method} {target} HTTP/1.1\r\n" + "\r\n".join(
+            [h for h in headers if not h.lower().startswith("proxy-authorization")]) + "\r\n\r\n"
+    elif method.upper() == "CONNECT":
         req = f"CONNECT {target} HTTP/1.1\r\n" + "\r\n".join(headers) + "\r\n\r\n"
     else:
         req = f"{method} {target} HTTP/1.1\r\n" + "\r\n".join(headers) + "\r\n\r\n"
