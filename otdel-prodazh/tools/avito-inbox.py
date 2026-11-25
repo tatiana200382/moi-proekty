@@ -56,7 +56,8 @@ process.exit(0);
 
 def ws_url() -> str:
     import urllib.request
-    with urllib.request.urlopen(f"http://localhost:{PORT}/json/list", timeout=5) as r:
+    opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+    with opener.open(f"http://127.0.0.1:{PORT}/json/list", timeout=5) as r:
         tabs = json.load(r)
     page = next((t for t in tabs if t.get("type") == "page" and "avito.ru" in (t.get("url") or "")), None)
     if not page:
