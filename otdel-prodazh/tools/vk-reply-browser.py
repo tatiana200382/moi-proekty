@@ -49,7 +49,10 @@ await sleep(2500);
 const needle = JSON.stringify((process.argv[3] || '').slice(0, 30));
 const probe = `(() => { const t = ${needle}; const nodes = [...document.querySelectorAll('.ConvoMessage, [class*="ConvoMessage"]')]; const hit = nodes.some(n => (n.innerText || '').includes(t)); const box = document.querySelector('.ComposerInput__input'); return JSON.stringify({ hit, box: box ? (box.innerText || '').slice(0, 40) : '' }); })()`;
 const check = await send('Runtime.evaluate', { expression: probe, returnByValue: true });
-console.log('РЕЗУЛЬТАТ', JSON.stringify(check || {}));
+const info = JSON.stringify(check || {});
+console.log('РЕЗУЛЬТАТ', info);
+const rv = (check && check.result && check.result.value) ? check.result.value : null;
+try { if (rv && JSON.parse(rv).hit) console.log('ОТПРАВЛЕНО', rv); } catch (e) {}
 process.exit(0);
 """
 
