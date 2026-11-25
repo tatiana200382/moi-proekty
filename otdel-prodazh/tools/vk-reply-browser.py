@@ -13,13 +13,15 @@ import subprocess
 import sys
 import urllib.request
 
+OPENER = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+
 PORT = 9224
 NODE = "/Applications/DeepSeek Harness.app/Contents/Resources/runtime/primary-runtime/dependencies/node/bin/node"
 BASE = "https://vk.ru/gim188108705/convo/"
 
 
 def ws_url() -> str:
-    with urllib.request.urlopen(f"http://localhost:{PORT}/json/list", timeout=5) as r:
+    with OPENER.open(f"http://127.0.0.1:{PORT}/json/list", timeout=5) as r:
         tabs = json.load(r)
     page = next((t for t in tabs if t.get("type") == "page" and "vk" in (t.get("url") or "")), None)
     if not page:
