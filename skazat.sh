@@ -42,7 +42,10 @@ if buf:
 PYCH
 )
   rm -f "$OUT"
-  [ "$OK" = "1" ] && exit 0
+  if [ "$OK" = "1" ]; then
+    echo "$(date +%H:%M:%S) ok silero ${#TEXT} симв." >>/tmp/skazat.log
+    exit 0
+  fi
 fi
 
 # 2) Piper.
@@ -54,3 +57,4 @@ fi
 
 # 3) Системный голос.
 rm -f "$OUT"; say -v Milena -r "$RATE" -- "$TEXT"
+echo "$(date +%H:%M:%S) fallback say ${#TEXT} симв." >>/tmp/skazat.log
