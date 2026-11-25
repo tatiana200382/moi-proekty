@@ -1,0 +1,3 @@
+2026-11-25 15:12:23 выполняю: test-0001
+dsh: MISSING_CREDENTIAL: llm-deepseek: no API key for provider route "deepseek-official"; store DEEPSEEK_API_KEY through the credentials service (the web Models page writes it), or export DEEPSEEK_API_KEY in the launching environment
+2026-11-25 15:12:26 готово: test-0001, код 1
