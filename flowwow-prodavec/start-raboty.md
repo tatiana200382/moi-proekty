@@ -5,8 +5,8 @@
 | Шаг | Что сделать | Результат |
 |---|---|---|
 | 1 | Прочитать правила: `../PRAVILA.md`, `../PRAVILA-ANTI-BAN.md`, этот AGENTS | понимание границ |
-| 2 | Проверить доступы: кабинет (`../flowwow-vitrina/tools/flowwow-auth.mjs open`), API (`node ../flowwow-vitrina/tools/flowwow-api.mjs ping`) | подтверждённый вход |
-| 3 | Прочитать знания: `knowledge.md`, `../agent-marketolog/knowledge.md`, `../flowwow-vitrina/research/*` | факты под рукой |
+| 2 | Проверить доступы: кабинет (`tools/flowwow-auth.mjs open`), API (`node tools/flowwow-api.mjs ping`) | подтверждённый вход |
+| 3 | Прочитать знания: `knowledge.md`, `../agent-marketolog/knowledge.md`, `research/*` | факты под рукой |
 | 4 | Снять текущее состояние: заказы, товары, отзывы, статистика | цифры «до» |
 | 5 | Разобрать 2–3 конкурента в СПб: цена, фото, доставка, тексты | что берём и что нет |
 | 6 | Выдвинуть гипотезы роста и посчитать их виртуально | 2–3 варианта с эффектом |

@@ -28,7 +28,8 @@
 | `kontent-zavod/` | обмен с контент-заводом (GPT) |
 | `sovet-direktorov/` | указания и отчёты совета |
 | `marketing-idei/` | банк идей акций |
-| `flowwow-vitrina/` | витрина Flowwow |
+| `flowwow-prodavec/` | **Марк** — продавец витрины Flowwow: карточки, тексты, фото, цены |
+| `flowwow-vitrina/` | архив исследования витрины Flowwow (основа для `flowwow-prodavec`) |
 | `dz-3-otchet/` | отчёт по ДЗ №3 |
 | `doktor/` | Доктор — диагностика и починка всей системы |
 | `ii-marketolog/` | **архив** старой ветки маркетинга, не развивается |

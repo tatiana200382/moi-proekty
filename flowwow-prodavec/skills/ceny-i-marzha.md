@@ -3,10 +3,10 @@
 ## Как считать
 
 ```bash
-node ../flowwow-vitrina/tools/flowwow-calc.mjs 3850            # пакет «Полный»
-node ../flowwow-vitrina/tools/flowwow-calc.mjs 3850 --half     # «Половинка»
-node ../flowwow-vitrina/tools/flowwow-calc.mjs 3850 --self     # своя доставка
-node ../flowwow-vitrina/tools/flowwow-calc.mjs 3850 --cost=2100
+node tools/flowwow-calc.mjs 3850            # пакет «Полный»
+node tools/flowwow-calc.mjs 3850 --half     # «Половинка»
+node tools/flowwow-calc.mjs 3850 --self     # своя доставка
+node tools/flowwow-calc.mjs 3850 --cost=2100
 ```
 
 ## Ориентиры (СПб, цветы)
