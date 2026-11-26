@@ -66,8 +66,10 @@ def sha(path: Path) -> str:
 # ---------------------------------------------------------------- проверки
 def check_secrets() -> None:
     if (ROOT / ".git").exists():
-        files = [f for f in git("ls-files").splitlines() if f.strip()]
-        source = "git"
+        tracked = [f for f in git("ls-files").splitlines() if f.strip()]
+        untracked = [f for f in git("ls-files", "--others", "--exclude-standard").splitlines() if f.strip()]
+        files = tracked + untracked
+        source = f"git: {len(tracked)} в коммитах, {len(untracked)} вне"
     else:  # снимок без .git (изолированный прогон на сервере)
         skip = {".git", "node_modules", ".venv", "__pycache__", "foto", "media"}
         files = [str(p.relative_to(ROOT)) for p in ROOT.rglob("*")
@@ -93,7 +95,7 @@ def check_secrets() -> None:
     if found:
         add("П4 секреты", "FAIL", "найдено: " + "; ".join(found[:5]))
     else:
-        add("П4 секреты", "OK", f"проверено файлов: {len(files)}")
+        add("П4 секреты", "OK", f"проверено файлов: {len(files)} ({source})")
 
 
 def check_rules_changed() -> None:
