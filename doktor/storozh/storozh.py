@@ -348,6 +348,21 @@ def check_journal(hours: int = 2, max_errors: int = 5, ignore: str = "sshd") -> 
 
 
 # ---------------------------------------------------------------- 9. не настроено
+def check_audit_fresh(warn_h: int = 26, fail_h: int = 50) -> None:
+    """Ежедневный аудит правил должен оставлять запись раз в сутки."""
+    log_path = "/var/lib/doktor-audit/audit.log"
+    if not os.path.exists(log_path):
+        add("аудит правил", SKIP, "журнал аудита ещё не создан")
+        return
+    age_h = (time.time() - os.path.getmtime(log_path)) / 3600
+    if age_h > fail_h:
+        add("аудит правил", FAIL, f"последний запуск {age_h:.0f} ч назад — аудит не работает")
+    elif age_h > warn_h:
+        add("аудит правил", WARN, f"последний запуск {age_h:.0f} ч назад")
+    else:
+        add("аудит правил", OK, f"последний запуск {age_h:.1f} ч назад")
+
+
 def check_not_yet() -> None:
     for name, reason in [
         ("пульс Mac-агентов", "этап 5: Mac ещё не отправляет пульс"),
@@ -439,6 +454,7 @@ def run_all(args) -> dict:
         check_http("домен HTTPS", f"https://{DOMAIN}:{HTTPS_PORT}/", alive=(200, 401, 403))
         check_cert(DOMAIN, HTTPS_PORT)
         check_journal()
+        check_audit_fresh()
 
     check_http("карточка Яндекс.Карт",
                "https://yandex.ru/maps/org/silver_song_flowers/138890152139/",

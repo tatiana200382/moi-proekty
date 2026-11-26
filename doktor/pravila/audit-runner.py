@@ -79,7 +79,8 @@ def main() -> int:
         lines = ["🔴 Аудит правил: нарушения"]
         lines += [f"• {f['rule']}: {f['detail']}" for f in fails[:8]]
         lines.append("Разбор — в журнале нарушений и отчёте Доктора.")
-        send_telegram("\n".join(lines))
+        ok, info = send_telegram("\n".join(lines))
+        log(f"alert ok={ok} {info}")
     return 1 if fails else 0
 
 

@@ -146,6 +146,9 @@
 | Журнал действий | `/var/lib/doktor/actions.log` — что починил и как откатить |
 | Пауза лечения | `/etc/doktor/PAUSE` (создать файл) |
 | Журнал прогонов | `journalctl -u doktor.service` |
+| Аудит правил | `doktor-audit.timer` — ежедневно 06:00 UTC (09:00 МСК), клон `/opt/doktor/repo`, журнал `/var/lib/doktor-audit/audit.log` |
+
+Сторож отдельно проверяет, что аудит не молчит: запись старше 26 часов → тревога.
 
 **Белый список лечения** (разрешён владельцем, записано в `PRAVILA.md`):
 - `systemctl restart` для `dsh-web`, `nginx`, юнитов `doktor-*`;
@@ -174,6 +177,7 @@
 | `pravila/reestr.md` | реестр правил: что и чем проверяется |
 | `pravila/vorota.sh` | ворота перед рискованным действием |
 | `pravila/audit.py` | аудит правил, журнал правок через `--zapishat` |
+| `pravila/audit-runner.py` | серверный запуск аудита: клон, проверка, тревога |
 | `narusheniya.md` | журнал нарушений; 3 записи → `pravila/STOP` |
 | `otchety/` | отчёты по этапам и крупным разборам |
 
@@ -190,6 +194,6 @@ doktor/pravila/vorota.sh --tip publikaciya --ploshchadka avito --odobreno
 
 Ворота не пропустят без плана, «да», откатa, изолированного теста, лимитов площадки и при включённом `STOP`.
 
-**Раз в день** — аудит: `python3 doktor/pravila/audit.py`. Нарушение → строка в `narusheniya.md`; три нарушения → `STOP` до разговора с владельцем.
+**Раз в день** аудит идёт сам на сервере (`doktor-audit.timer`, 09:00 МСК): нарушение → тревога в Telegram. Вручную — `python3 doktor/pravila/audit.py`. Нарушение → строка в `narusheniya.md`; три нарушения → `STOP` до разговора с владельцем.
 
 **Правила меняет только владелец.** Согласованную правку `PRAVILA.md` фиксирую командой `audit.py --zapishat "что и зачем"` — иначе аудит увидит правку без записи.
