@@ -46,6 +46,8 @@ OUTBOX = os.path.join(RUNTIME, "outbox")
 MAX_CLIENT = os.path.join(ROOT, "agent-marketolog", "bot", "max_client.py")
 
 SOURCE_NAMES = {"yandex": "Яндекс.Карты", "vk": "ВКонтакте", "avito": "Авито"}
+JUNK_ITEMS = ("продавец цветов", "флорист продавец", "квартира", "консультация по flowwow", "ваканс", "м²")
+
 ICONS = {"A": "🔥", "B": "🟡", "C": "⚪"}
 
 CSV_FIELDS = [
@@ -202,13 +204,16 @@ def qualify(d: dict) -> dict:
 
     if is_test(d):
         return {"code": "C", "why": "тестовая запись", "missing": [], "action": "ничего не делать"}
+    # Авито и ВК: переписка в чате — это и есть канал связи, телефон часто скрыт площадкой
+    source = (d.get("source") or "").lower()
+    question = (d.get("question") or "").strip()
+    if source in ("avito", "vk") and (order or question):
+        where = "Авито" if source == "avito" else "ВКонтакте"
+        return {"code": "B", "why": f"заявка в чате {where}, телефон уточняется в переписке",
+                "missing": missing, "action": "ответить в чате и запросить дату, время и адрес"}
     if not contact and not order:
         return {"code": "C", "why": "нет контакта и нет заказа", "missing": missing,
                 "action": "проверить источник вручную"}
-    # Авито: переписка в чате — это и есть канал связи, телефон часто скрыт площадкой
-    if (d.get("source") or "") == "avito" and order:
-        return {"code": "B", "why": "заявка в чате Авито, телефон уточняется в переписке",
-                "missing": missing, "action": "ответить в чате и запросить дату, время и адрес"}
     if not contact:
         return {"code": "C", "why": "нет пригодного контакта (заглушка или неполный номер)",
                 "missing": missing, "action": "проверить диалог в источнике вручную"}
@@ -237,43 +242,133 @@ def deadline_for(d: dict, q: dict) -> str:
     return iso(value)
 
 
-def render_card(entry: dict) -> str:
-    q = entry["readiness"]
-    title = "КАРТОЧКА ЗАЯВКИ · готова" if q == "A" else "КАРТОЧКА ЗАЯВКИ · уточнить"
-    src = SOURCE_NAMES.get(entry["source"], entry["source"])
-    lines = [f"{ICONS.get(q, '⚪')} {fmt_dt(entry['created'])} · {src}"]
-    lines.append(f"Клиент: {entry['client'] or '—'}")
-    if entry.get("contact"):
-        lines.append(f"Телефон: {entry['contact']}")
-    if entry.get("email"):
-        lines.append(f"Почта: {entry['email']}")
+def reply_code(entry: dict) -> str:
+    """Короткий числовой номер заявки для ответа: «<номер> текст»."""
+    if entry.get("code"):
+        return str(entry["code"])
+    seed = f"{entry.get('source')}|{entry.get('external_id')}|{entry.get('client')}"
+    return str(int(hashlib.sha1(seed.encode()).hexdigest(), 16) % 9000000 + 1000000)
 
-    if entry.get("items"):
-        lines.append("Что нужно:")
-        lines.extend(f"• {item}" for item in entry["items"][:5])
-    elif entry.get("question"):
-        lines.append(f"От клиента: {entry['question']}")
-    if entry.get("amount"):
-        lines.append(f"Сумма: {entry['amount']}")
-    if entry.get("comment"):
-        label = "Магазин" if entry.get("source") == "yandex" else "Комментарий"
-        lines.append(f"{label}: {entry['comment']}")
-    if entry.get("missing"):
-        lines.append(f"Чего не хватает: {', '.join(entry['missing'])}")
-    lines.append(f"Действие: {entry['action']}")
-    lines.append(f"Дедлайн: {fmt_dt(entry['deadline'])}")
-    if entry.get("draft"):
-        draft = entry["draft"].strip().replace("\n", " ")
-        lines.append(f"Наш ответ: {draft[:350]}")
-    if entry.get("link"):
-        lines.append(f"Источник: {entry['link']}")
-    lines.append("")
-    lines.append(f"<code>{entry.get('external_id') or entry['id']}</code>")
+
+def status_icon(entry: dict) -> str:
+    """🟢 — первичная заявка (отвечал только бот площадки/автоответ).
+    🟡 — ответил НАШ сотрудник из чата «Заявки».  ✅ — сделка."""
+    st = (entry.get("status") or "").lower()
+    if st in ("order", "сделка", "оплачен", "выполнен"):
+        return "✅"
+    if entry.get("staff_replied"):
+        return "🟡"
+    return "🟢"
+
+
+def check_line(entry: dict) -> str:
+    sent = "☑" if (entry.get("sent_at") or entry.get("status") in ("sent", "in_work", "order")) else "☐"
+    return f"☑ заявка  {sent} отправлено"
+
+
+def is_junk(entry: dict) -> bool:
+    text = (" ".join(entry.get("items") or []) + " " + (entry.get("question") or "")).lower()
+    return any(j in text for j in JUNK_ITEMS)
+
+
+def clean_msg(text: str) -> str:
+    """Убираем время, «Доставлено», «Прочитано» из текста сообщения."""
+    import re as _r
+    s = (text or "").replace("\u00a0", " ")
+    s = _r.sub(r"(?i)\b(доставлено|прочитано|отправлено|изменено)\b", " ", s)
+    s = _r.sub(r"\b\d{1,2}:\d{2}\b", " ", s)
+    s = _r.sub(r"\b\d+\s*(минут|час|дн|недел|месяц)\w*\s*назад", " ", s, flags=_r.I)
+    s = _r.sub(r"\s+", " ", s).strip(" ·—-")
+    return s
+
+
+def render_card(entry: dict) -> str:
+    src = SOURCE_NAMES.get(entry["source"], entry["source"])
+    icon = status_icon(entry)
+    when = fmt_dt(entry.get("created") or "")
+
+    if entry.get("source") == "yandex":
+        def rub(s):
+            return (s or "").replace("×", "*").replace("₽", "руб").replace("  ", " ").strip()
+        lines = [when, ""]
+        lines.append(f"{icon} <b>Заявка Яндекс Карты</b> * {entry.get('client') or '—'}")
+        shops = ("белышева", "трибуца", "ленинский")
+        comment = (entry.get("comment") or "").strip()
+        if comment and any(s in comment.lower() for s in shops):
+            lines.append(comment)
+        order_bits = []
+        items_text = "; ".join(rub(x) for x in (entry.get("items") or [])[:3])
+        amount = rub(entry.get("amount") or "")
+        if items_text and amount and amount not in items_text:
+            items_text = f"{items_text} · {amount}"
+        elif not items_text:
+            items_text = amount
+        if items_text:
+            lines.append(f"Заказ: {items_text[:200]}")
+        if comment and not any(s in comment.lower() for s in shops):
+            lines.append(f"Комментарий: {comment[:120]}")
+        if order_bits:
+            lines.append(f"Заказ: {' · '.join(order_bits)[:200]}")
+        if entry.get("contact"):
+            lines += ["", f"☎️ {entry['contact']}"]
+        lines += ["", f"Номер для ответа: <mark>{reply_code(entry)}</mark>"]
+        return "\n".join(lines)[:3800]
+
+    import re as _r
+    client_msg = (entry.get("question") or "")
+    client_msg = " ".join(x for x in client_msg.split() if x.lower() not in ("вы:", "вы"))
+    client_msg = _r.sub(r"\b\d+\s*(минут|час|дн|недел|месяц)\w*\s*назад", "", client_msg)
+    client_msg = _r.sub(r"\s+", " ", client_msg).strip()
+
+    ours = (entry.get("our_reply") or entry.get("our_last") or "").strip()
+    ours = _r.sub(r"\s+", " ", ours)
+    if not ours:
+        ours = _r.sub(r"\s+", " ", (entry.get("draft") or "").strip())
+
+    lines = [when, "", f"{icon} <b>Заявка {src}</b> * {entry.get('client') or '—'}"]
+    if entry.get("source") == "avito" and entry.get("items"):
+        lines.append(f"Объявление: {entry['items'][0][:120]}")
+
+    st = (entry.get("status") or "").lower()
+    if st in ("new", ""):
+        if client_msg:
+            lines += ["", "Переписка:", f"👤 {clean_msg(client_msg)[:300]}"]
+    else:
+        lines.append("")
+        if ours:
+            lines.append(f"✉️ {clean_msg(ours)[:300]}")
+        if client_msg:
+            lines.append(f"👤 {clean_msg(client_msg)[:300]}")
+
+    lines += ["", f"Номер для ответа: <mark>{reply_code(entry)}</mark>"]
     return "\n".join(lines)[:3800]
+
+
+def make_code(d: dict) -> str:
+    seed = f"{d.get('source')}|{d.get('external_id')}|{d.get('client')}"
+    return str(int(hashlib.sha1(seed.encode()).hexdigest(), 16) % 9000000 + 1000000)
+
+
+def ensure_code(entry: dict, taken: set) -> str:
+    code = str(entry.get("code") or "")
+    if code:
+        taken.add(code)
+        return code
+    code = make_code(entry)
+    salt = 0
+    while code in taken:
+        salt += 1
+        code = make_code({**entry, "client": f"{entry.get('client') or ''} #{salt}"})
+    entry["code"] = code
+    taken.add(code)
+    return code
 
 
 def sync() -> dict:
     state = load_state()
+    taken = set()
+    for old in state["leads"].values():
+        ensure_code(old, taken)
     added = 0
     for d in source_leads():
         key = lead_key(d)
@@ -289,6 +384,8 @@ def sync() -> dict:
             "id": key,
             "source": d.get("source") or "?",
             "external_id": str(d.get("external_id") or ""),
+            "photo": d.get("photo") or "",
+            "our_last": d.get("our_last") or d.get("answer") or "",
             "client": (d.get("client") or "").strip(),
             "contact": (d.get("contact") or "").strip(),
             "email": (d.get("email") or "").strip(),
@@ -310,6 +407,7 @@ def sync() -> dict:
             "send_errors": 0,
             "notes": "",
         }
+        ensure_code(entry, taken)
         state["leads"][key] = entry
         added += 1
     state["last_run"] = iso(now())
