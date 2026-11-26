@@ -65,7 +65,14 @@ def sha(path: Path) -> str:
 
 # ---------------------------------------------------------------- проверки
 def check_secrets() -> None:
-    files = [f for f in git("ls-files").splitlines() if f.strip()]
+    if (ROOT / ".git").exists():
+        files = [f for f in git("ls-files").splitlines() if f.strip()]
+        source = "git"
+    else:  # снимок без .git (изолированный прогон на сервере)
+        skip = {".git", "node_modules", ".venv", "__pycache__", "foto", "media"}
+        files = [str(p.relative_to(ROOT)) for p in ROOT.rglob("*")
+                 if p.is_file() and not any(part in skip for part in p.parts)]
+        source = "файлы"
     text_ext = {".md", ".py", ".sh", ".mjs", ".json", ".yaml", ".yml", ".txt", ".csv", ".toml"}
     found = []
     for rel in files:
