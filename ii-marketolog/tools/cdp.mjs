@@ -102,8 +102,12 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
       await send("Input.dispatchMouseEvent", { type: "mouseReleased", x, y, button: "left", clickCount: 1 });
       console.log("клик", x, y);
     } else if (cmd === "type") {
-      await send("Input.insertText", { text: args[1] });
-      console.log("введено", String(args[1]).length, "символов");
+      const text = args[1] || "";
+      for (const ch of text) {
+        await send("Input.dispatchKeyEvent", { type: "char", text: ch });
+        await sleep(60 + Math.random() * 60);
+      }
+      console.log("введено", text.length, "символов посимвольно");
     } else if (cmd === "key") {
       const map = { Enter: 13, Tab: 9, ArrowDown: 40, ArrowUp: 38, Escape: 27, Space: 32 };
       const key = args[1] || "Enter";
