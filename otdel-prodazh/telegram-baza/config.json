@@ -1,0 +1,17 @@
+{
+  "owner_name": "",
+  "brand": "Silver Song Flowers",
+  "source_note": "Официальная выгрузка Telegram (контакты)",
+  "output_name": "База_контактов",
+  "phone": {
+    "enabled": false,
+    "adb_path": "adb"
+  },
+  "telegram": {
+    "enabled": false,
+    "api_id": 0,
+    "api_hash": "",
+    "sessions": ["main"],
+    "chats": []
+  }
+}
