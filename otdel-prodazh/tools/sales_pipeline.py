@@ -46,6 +46,11 @@ OUTBOX = os.path.join(RUNTIME, "outbox")
 MAX_CLIENT = os.path.join(ROOT, "agent-marketolog", "bot", "max_client.py")
 
 SOURCE_NAMES = {"yandex": "Яндекс.Карты", "vk": "ВКонтакте", "avito": "Авито"}
+VK_TRIVIAL = {
+    "отлично", "спасибо", "благодарю", "хорошо", "ок", "окей", "готово", "принято",
+    "понял", "поняла", "супер", "класс", "да", "нет", "здравствуйте", "добрый день",
+    "добрый вечер", "привет", "доброе утро",
+}
 JUNK_ITEMS = ("продавец цветов", "флорист продавец", "квартира", "консультация по flowwow", "ваканс", "м²")
 
 ICONS = {"A": "🔥", "B": "🟡", "C": "⚪"}
@@ -126,21 +131,50 @@ def source_leads() -> list:
     return leads
 
 
-def lead_key(d: dict) -> str:
-    # ВК: id диалога меняется между запусками — ключ по клиенту и тексту обращения
-    if (d.get("source") or "") == "vk":
-        import re as _re
-        q = (d.get("question") or "").lower()
-        q = _re.sub(r"(?:\d+|один|одна|два|две|три|четыре|пять|шесть|семь|восемь|девять|десять)\s*"
-                   r"(?:минут\w*|час\w*|дн\w*|день|недел\w*|месяц\w*)\s*назад", "", q)
-        q = _re.sub(r"\s+", " ", q).strip()[:120]
-        raw = f"vk|{d.get('client')}|{q}"
-        return f"vk:{hashlib.sha1(raw.encode()).hexdigest()[:10]}"
+def thread_of(d: dict) -> str:
+    """Одна переписка: ВК — диалог, Авито — чат. По ней держим один номер."""
+    src = (d.get("source") or "").lower()
     ext = str(d.get("external_id") or "").strip()
-    if ext:
-        return f"{d.get('source','?')}:{ext}"
-    raw = f"{d.get('source')}|{d.get('client')}|{d.get('question')}|{d.get('contact')}"
-    return f"{d.get('source','?')}:{hashlib.sha1(raw.encode()).hexdigest()[:10]}"
+    if src in ("vk", "avito") and ext:
+        return ext.split(":")[0]
+    return ext
+
+
+def lead_key(d: dict) -> str:
+    src = (d.get("source") or "").lower()
+    thread = thread_of(d)
+    if src in ("vk", "avito") and thread:
+        return f"{src}:{thread}"
+    if thread:
+        return f"{src}:{thread}"
+    raw = f"{src}|{d.get('client')}|{d.get('question')}|{d.get('contact')}"
+    return f"{src}:{hashlib.sha1(raw.encode()).hexdigest()[:10]}"
+
+
+def find_thread(state: dict, d: dict):
+    """Ищет уже существующую заявку по этой же переписке."""
+    src = (d.get("source") or "").lower()
+    thread = thread_of(d)
+    if not thread:
+        return None
+    best = None
+    best_score = None
+    for k, v in state["leads"].items():
+        if (v.get("source") or "").lower() != src or thread_of(v) != thread:
+            continue
+        score = ((v.get("status") or "") in ("in_work", "sent", "new"), v.get("created") or "")
+        if best is None or score > best_score:
+            best, best_score = k, score
+    return best
+
+
+def ignored_vk_peers() -> set:
+    path = os.path.join(RUNTIME, "vk-ignore.json")
+    try:
+        with open(path, encoding="utf-8") as f:
+            return {str(x) for x in json.load(f).get("peers", [])}
+    except (OSError, ValueError):
+        return set()
 
 
 PLACEHOLDER_PHONES = {"+7 900 000-00-00", "8 900 000-00-00", "000-00-00", "+7 000 000-00-00"}
@@ -207,6 +241,11 @@ def qualify(d: dict) -> dict:
     # Авито и ВК: переписка в чате — это и есть канал связи, телефон часто скрыт площадкой
     source = (d.get("source") or "").lower()
     question = (d.get("question") or "").strip()
+    if source == "vk":
+        low = question.lower().strip(" .,!?…")
+        if low in VK_TRIVIAL or low.startswith("проверка"):
+            return {"code": "C", "why": "короткая реплика, не заявка", "missing": missing,
+                    "action": "ничего не делать"}
     if source in ("avito", "vk") and (order or question):
         where = "Авито" if source == "avito" else "ВКонтакте"
         return {"code": "B", "why": f"заявка в чате {where}, телефон уточняется в переписке",
@@ -326,6 +365,8 @@ def render_card(entry: dict) -> str:
         ours = _r.sub(r"\s+", " ", (entry.get("draft") or "").strip())
 
     lines = [when, "", f"{icon} <b>Заявка {src}</b> * {entry.get('client') or '—'}"]
+    if (entry.get("status") or "") == "new" and entry.get("sent_at"):
+        lines.append("💬 Новое сообщение по этой заявке")
     if entry.get("source") == "avito" and entry.get("items"):
         lines.append(f"Объявление: {entry['items'][0][:120]}")
 
@@ -345,7 +386,7 @@ def render_card(entry: dict) -> str:
 
 
 def make_code(d: dict) -> str:
-    seed = f"{d.get('source')}|{d.get('external_id')}|{d.get('client')}"
+    seed = str(d.get("id") or f"{d.get('source')}|{d.get('external_id')}|{d.get('client')}")
     return str(int(hashlib.sha1(seed.encode()).hexdigest(), 16) % 9000000 + 1000000)
 
 
@@ -369,16 +410,39 @@ def sync() -> dict:
     taken = set()
     for old in state["leads"].values():
         ensure_code(old, taken)
+    ignored = ignored_vk_peers()
     added = 0
+    updated = 0
     for d in source_leads():
-        key = lead_key(d)
-        if key in state["leads"]:
+        src = (d.get("source") or "").lower()
+        thread = thread_of(d)
+        if src == "vk" and thread in ignored:
             continue
+        key = lead_key(d)
+        existing = key if key in state["leads"] else find_thread(state, d)
         q = qualify(d)
+        if existing:
+            lead = state["leads"][existing]
+            new_q = (d.get("question") or "").strip()
+            if q["code"] in ("A", "B") and new_q and new_q != (lead.get("question") or "").strip():
+                last = parse_dt(lead.get("last_message_at") or lead.get("created") or "")
+                cur = parse_dt(d.get("created") or "")
+                if not last or not cur or cur > last:
+                    lead["question"] = new_q
+                    lead["our_last"] = d.get("our_last") or d.get("answer") or lead.get("our_last") or ""
+                    lead["last_message_at"] = d.get("created") or iso(now())
+                    lead["readiness"] = q["code"]
+                    lead["why"] = q["why"]
+                    lead["missing"] = q["missing"]
+                    lead["action"] = q["action"]
+                    lead["deadline"] = deadline_for(d, q)
+                    lead["status"] = "new"
+                    updated += 1
+            continue
         old = bool(d.get("baseline")) or (d.get("status") == "старая")
         status = "archive" if old else ("new" if q["code"] in ("A", "B") else "skip")
         # Авито: заявка в цветочном объявлении, даже без телефона — в работу
-        if (d.get("source") or "") == "avito" and q["code"] in ("A", "B") and status == "skip":
+        if src == "avito" and q["code"] in ("A", "B") and status == "skip":
             status = "new"
         entry = {
             "id": key,
@@ -403,6 +467,7 @@ def sync() -> dict:
             "status": status,
             "deadline": deadline_for(d, q),
             "first_seen": iso(now()),
+            "last_message_at": d.get("created") or iso(now()),
             "sent_at": "",
             "send_errors": 0,
             "notes": "",
@@ -413,7 +478,7 @@ def sync() -> dict:
     state["last_run"] = iso(now())
     save_state(state)
     write_csv(state)
-    log(f"sync: добавлено {added}, всего {len(state['leads'])}")
+    log(f"sync: добавлено {added}, обновлено {updated}, всего {len(state['leads'])}")
     return state
 
 
