@@ -75,33 +75,6 @@ def remember_reply(code: str, text: str) -> None:
     path.write_text(json.dumps(st, ensure_ascii=False, indent=1))
 
 
-def chat_of_update(up: dict, msg: dict):
-    cid = up.get("chat_id") or (msg.get("recipient") or {}).get("chat_id")
-    ctype = up.get("chat_type") or (msg.get("recipient") or {}).get("chat_type")
-    return str(cid or ""), ctype
-
-
-def sender_name(sender: dict, author_id) -> str:
-    name = " ".join(x for x in (sender.get("first_name"), sender.get("last_name")) if x).strip()
-    return name or str(sender.get("username") or "") or str(author_id)
-
-
-def mirror_to_chat(up: dict, msg: dict, sender: dict, author_id, code: str, where: str, text: str) -> None:
-    """Личный ответ сотрудника показываем в группе «Заявки», как обычное сообщение."""
-    cid, _ = chat_of_update(up, msg)
-    if cid.startswith("-"):
-        return
-    try:
-        group = max_client.chat_id()
-        if not group:
-            return
-        who = sender_name(sender, author_id)
-        max_client.send(group, f"💬 {who} · {where} · заявка {code}\n{text[:400]}")
-        print("переслано в чат:", who, code)
-    except Exception as e:
-        print("не смог переслать в чат:", e)
-
-
 def notify_author(author_id, text: str) -> None:
     """Отчёт об отправке — только в личный чат бота с автором команды."""
     try:
@@ -183,8 +156,6 @@ def once() -> int:
                     notify_author(author_id,
                                   (f"✅ Отправлено в {where} · {short.group(1)}\n{text[:200]}" if ok
                                    else f"⚠️ Не отправлено в {where} · {short.group(1)}\n{detail}"))
-                    if ok:
-                        mirror_to_chat(up, msg, sender, author_id, short.group(1), where, text)
                     print("передано в отправку:", kind, detail[:100])
             handled += 1
             continue
@@ -226,7 +197,6 @@ def once() -> int:
         try:
             if ok:
                 notify_author(author_id, f"✅ Отправлено в ВКонтакте · {channel[:12]}…\n{text[:200]}")
-                mirror_to_chat(up, msg, sender, author_id, channel[:12], "ВКонтакте", text)
             else:
                 notify_author(author_id, f"⚠️ Не отправлено в ВК · {channel[:12]}…\n{(proc.stdout or proc.stderr)[:150]}")
         except Exception as e:
