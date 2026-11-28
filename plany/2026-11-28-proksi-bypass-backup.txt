@@ -1,0 +1,11 @@
+*.avito.ru
+avito.ru
+*.vk.com
+vk.com
+*.max.ru
+*.mail.ru
+localhost
+127.0.0.1
+*.local
+flowwow.com
+*.flowwow.com
