@@ -69,3 +69,7 @@ sudrf.ru
 *.sudrf.ru
 xn--b1aew.xn--p1ai
 *.xn--b1aew.xn--p1ai
+evotor.ru
+*.evotor.ru
+xn--b1ayaii7d.xn--p1ai
+*.xn--b1ayaii7d.xn--p1ai
